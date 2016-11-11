@@ -1,4 +1,4 @@
-package me.robomwm.PlayerCompass;
+package me.robomwm.BetterTPA;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -19,11 +19,11 @@ import java.util.HashSet;
 /**
  * Created by Robo on 4/24/2016.
  */
-public class PlayerCompass extends JavaPlugin implements Listener
+public class BetterTPA extends JavaPlugin implements Listener
 {
     HashMap<Player, Player> trackingPlayers = new HashMap<Player, Player>();
     HashMap<Player, HashSet<Player>> allowedPlayers = new HashMap<Player, HashSet<Player>>();
-    String compassHelp = ("\u00A7e--------- PlayerCompass -------------------------" +
+    String compassHelp = ("\u00A7e--------- BetterTPA -------------------------" +
             "\n\u00A76/compass allow \u00A7e\u00A7oplayer\u00A7r - Allows \u00A7e\u00A7oplayer\u00A7r to track you." +
             "\n\u00A76/compass disallow\u00A7r - Disallows all players from tracking you." +
             "\n\u00A76/compass track \u00A7e\u00A7oplayer\u00A7r - Sets your compass to track \u00A7e\u00A7oplayer." +

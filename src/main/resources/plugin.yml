@@ -1,6 +1,6 @@
-name: PlayerCompass
+name: BetterTPA
 author: RoboMWM
 version: ${project.version}
-main: me.robomwm.PlayerCompass.PlayerCompass
+main: me.robomwm.BetterTPA.BetterTPA
 commands:
     compass: {}
