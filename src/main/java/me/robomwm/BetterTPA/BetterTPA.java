@@ -138,8 +138,9 @@ public class BetterTPA extends JavaPlugin implements Listener
         if (args.length < 1)
             return false;
 
-        final Player target = Bukkit.getPlayerExact(args[0]);
-        String targetUUID = target.getUniqueId().toString();
+        Player target = Bukkit.getPlayerExact(args[0]);
+        if (target == null)
+            target = Bukkit.getPlayer(args[0]);
 
         //Check if target is invalid or invisible player
         if (target == null || !player.canSee(target))
@@ -147,6 +148,8 @@ public class BetterTPA extends JavaPlugin implements Listener
             player.sendMessage(ChatColor.RED + "Doesn't look like " + ChatColor.AQUA + args[0] + ChatColor.RED + " is online or a valid name.");
             return true;
         }
+
+        String targetUUID = target.getUniqueId().toString();
 
         //Requesting to tp/accept urself? pls
         if (target == player)
