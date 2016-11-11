@@ -2,6 +2,7 @@ package me.robomwm.BetterTPA;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -35,7 +36,6 @@ public class BetterTPA extends JavaPlugin implements Listener
     String requestTeleportSuccessMessage = ChatColor.GREEN + "U successfully teleported 2 ";
     String targetTeleportSuccessMessage = ChatColor.AQUA + " teleported 2 u";
     String teleportWarmupPermission = "bettertpa.nowarmup";
-    String cannotTeleportTo = "bettertpa.cannotteleportto";
     Map<Player, Player> requesters = new HashMap<>();
     Set<Player> recentRequesters = new HashSet<>();
     Set<Player> tpToggled = new HashSet<>();
@@ -228,8 +228,8 @@ public class BetterTPA extends JavaPlugin implements Listener
     public String canTeleport(Player player, Player target)
     {
         //TODO: preciousstones/whatever-claim-system-we-use check
-        
-        if (target.hasPermission(cannotTeleportTo))
+
+        if (target.getGameMode() == GameMode.CREATIVE)
             return target.getName() + " is currently in a non-public (developing) world.";
         return null;
     }
