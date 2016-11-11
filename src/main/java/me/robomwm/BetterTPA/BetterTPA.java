@@ -2,15 +2,13 @@ package me.robomwm.BetterTPA;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
-import org.bukkit.Material;
+import org.bukkit.Location;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
-import org.bukkit.event.EventHandler;
-import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
-import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 
@@ -18,7 +16,10 @@ import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.UUID;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * Created by Robo on 4/24/2016.
@@ -26,6 +27,18 @@ import java.util.UUID;
 public class BetterTPA extends JavaPlugin implements Listener
 {
     YamlConfiguration storage;
+    ConfigurationSection allowedPlayers;
+    String blockedMessage = ChatColor.DARK_GREEN + " will no longer be able to send teleport requests 2 u. Use" +
+            ChatColor.GOLD + " /tpremove" + ChatColor.DARK_GREEN + " to undo dis if dis wuz mistake.";
+    String removeMessage = ChatColor.DARK_GREEN + " was removed from ur /tpallow. FYI, u can view ur /tplist";
+    String tpToggledMessage = ChatColor.RED + " is currently n0t in da m00d 2 receive teleport pr0posals. Try l8r, mebee?";
+    String requestTeleportSuccessMessage = ChatColor.GREEN + "U successfully teleported 2 ";
+    String targetTeleportSuccessMessage = ChatColor.AQUA + " teleported 2 u";
+    String teleportWarmupPermission = "bettertpa.nowarmup";
+    Map<Player, Player> requesters = new HashMap<>();
+    Set<Player> recentRequesters = new HashSet<>();
+    Set<Player> tpToggled = new HashSet<>();
+    Map<Player, Integer> pendingTeleports = new HashMap<>();
 
     @Override
     public void onEnable()
@@ -50,6 +63,13 @@ public class BetterTPA extends JavaPlugin implements Listener
         }
         else
             storage = YamlConfiguration.loadConfiguration(storageFile);
+
+        //Create appropriate configurationsections, if they don't exist
+        if (storage.getConfigurationSection("allowedPlayers") == null)
+            storage.set("allowedPlayers", new LinkedHashMap<String, String>());
+
+        //Set variables/shortcuts
+        allowedPlayers = storage.getConfigurationSection("allowedPlayers");
     }
 
     public void onDisable()
@@ -68,6 +88,36 @@ public class BetterTPA extends JavaPlugin implements Listener
         }
     }
 
+    /**
+     * Check a player's /tpacceptance status or w/e
+     * @param returnNullIfNotSpecified if true, will return null if target is not allowed nor blocked. Otherwise, will return false for this case
+     */
+    public Boolean isAllowed(String playerUUID, String targetUUID, boolean returnNullIfNotSpecified)
+    {
+        Boolean result;
+        if (allowedPlayers.getConfigurationSection(playerUUID) == null)
+            result = null;
+        result = (Boolean)allowedPlayers.getConfigurationSection(playerUUID).get(targetUUID);
+
+        if (result == null && !returnNullIfNotSpecified)
+            return false;
+
+        return result;
+    }
+
+    /**
+     * Set a player as allowed, blocked, or unspecified
+     * @param playerUUID
+     * @param targetUUID
+     * @param allow
+     */
+    public void setAllowed(String playerUUID, String targetUUID, Boolean allow)
+    {
+        if (allowedPlayers.getConfigurationSection(playerUUID) == null)
+            allowedPlayers.set(playerUUID, new HashMap<Player, Boolean>());
+        allowedPlayers.getConfigurationSection(playerUUID).set(targetUUID, allow);
+    }
+
     @Override
     public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args)
     {
@@ -82,100 +132,143 @@ public class BetterTPA extends JavaPlugin implements Listener
         final Player target = Bukkit.getPlayerExact(args[0]);
         String targetUUID = target.getUniqueId().toString();
 
-        if (cmd.getName().equalsIgnoreCase("tpdeny"))
+        //Check if target is invalid or invisible player
+        if (target == null || !player.canSee(target))
         {
-            //If player hasn't allowed anyone before, add to hashmap
-            if (!allowedPlayers.containsKey(player))
-                allowedPlayers.put(player, new HashSet<Player>());
+            player.sendMessage(ChatColor.RED + "Doesn't look like " + ChatColor.AQUA + args[0] + ChatColor.RED + " is online or a valid name.");
+            return true;
+        }
+
+        //Requesting to tp/accept urself? pls
+        if (target == player)
+        {
+            player.sendMessage(ChatColor.RED + "kek");
+            return true;
+        }
+
+        if (cmd.getName().equalsIgnoreCase("tpblock"))
+        {
+            setAllowed(playerUUID, targetUUID, false);
+            player.sendMessage(target.getDisplayName() + blockedMessage);
+            return true;
+        }
+
+        if (cmd.getName().equalsIgnoreCase("tpremove"))
+        {
+            setAllowed(playerUUID, targetUUID, null);
+            player.sendMessage(target.getDisplayName() + removeMessage);
+            return true;
         }
 
         if (cmd.getName().equalsIgnoreCase("tpa"))
         {
-            //Check if target is invalid or invisible player
-            if (target == null || !player.canSee(target))
-            {
-                player.sendMessage(ChatColor.RED + "Doesn't look like " + ChatColor.AQUA + args[0] + ChatColor.RED + " is online or a valid name.");
-                return true;
-            }
+            Boolean allowed = isAllowed(playerUUID, targetUUID, true);
 
-            //Don't allow tracking self
-            if (target == player)
+            //Check if target has not yet allowed/blocked player
+            if (allowed == null)
             {
-                player.sendMessage(ChatColor.RED + "kek");
-                return true;
-            }
-
-            //Check if target isn't allowing player
-            if (!allowedPlayers.containsKey(target) || !allowedPlayers.get(target).contains(player))
-            {
+                if (tpToggled.contains(target))
+                {
+                    player.sendMessage(target.getDisplayName() + tpToggled);
+                    return true;
+                }
+                if (recentRequesters.contains(player))
+                {
+                    player.sendMessage(ChatColor.RED + "ayy m8 slow down with ur teleport pr0posals.");
+                    return true;
+                }
                 player.sendMessage(ChatColor.AQUA + "0k, but 1st, " + target.getDisplayName() + ChatColor.AQUA + " n33ds 2 accept ur teleport proposal. We'll let u know if they say yes.");
                 target.sendMessage(player.getDisplayName() + ChatColor.BLUE + " w0ts 2 tp 2 u. U can:" + ChatColor.GOLD + " /tpallow " + player.getName() + ChatColor.BLUE + "\nor u can" + ChatColor.GOLD + " /tpblock " + player.getName());
+                requesters.put(player, target);
+                recentRequesters.add(player);
+                new BukkitRunnable()
+                {
+                    public void run()
+                    {
+                        recentRequesters.remove(player);
+                    }
+                }.runTaskLater(this, 200L);
                 return true;
             }
 
-            trackingPlayers.put(player, target);
-            player.sendMessage(ChatColor.GREEN + "Your compass is now tracking " + target.getName() + ".");
-
-            new BukkitRunnable()
+            //Blocked
+            if (!allowed)
             {
-                public void run()
-                {
-                    //Cancel task if player is offline or is no longer tracking target
-                    if (!player.isOnline() || !trackingPlayers.containsKey(player) || !trackingPlayers.get(player).equals(target))
-                        this.cancel();
+                player.sendMessage(target.getDisplayName() + tpToggled);
+                return true;
+            }
 
-                        //Cancel task if target is offline
-                    else if (!target.isOnline())
-                    {
-                        player.sendMessage(ChatColor.RED + target.getName() + " is offline. Resetting compass to spawn.");
-                        player.setCompassTarget(player.getWorld().getSpawnLocation());
-                        this.cancel();
-                    }
-
-                    //Cancel task if target removed player from their allowedPlayers
-                    else if (!trackingPlayers.containsKey(target) || !allowedPlayers.get(target).contains(player))
-                    {
-                        player.sendMessage(ChatColor.RED + target.getName() + " is no longer allowing you to track them. Resetting compass to spawn.");
-                        player.setCompassTarget(player.getWorld().getSpawnLocation());
-                        this.cancel();
-                    }
-                    else
-                        player.setCompassTarget(target.getLocation());
-                }
-            }.runTaskTimer(this, 5L, 300L);
+            //Allowed
+            pendingTeleports.remove(player);
+            preTeleportPlayer(player, target);
             return true;
         }
 
         else if (cmd.getName().equalsIgnoreCase("tpallow"))
         {
-            //Check if target is online and visible
-            if (target == null || !player.canSee(target))
-            {
-                player.sendMessage(ChatColor.RED + "Doesn't look like " + ChatColor.AQUA + args[0] + ChatColor.RED + " is online or a valid name.");
-                return true;
-            }
-            //If player hasn't allowed anyone before, add to hashmap
-            if (!allowedPlayers.containsKey(player))
-                allowedPlayers.put(player, new HashSet<Player>());
-                //otherwise first check if they already allowed the target
-            else if (allowedPlayers.get(player).contains(target))
-            {
-                player.sendMessage(ChatColor.GREEN + "You already allowed " + ChatColor.AQUA + target.getName() + ChatColor.GREEN + " to teleport to you.");
-                return true;
-            }
-
-            allowedPlayers.get(player).add(target);
-            player.sendMessage(ChatColor.GREEN + "You allowed " +  ChatColor.AQUA + target.getName() + ChatColor.GREEN + " 2 teleport 2 you.");
-            player.sendMessage(ChatColor.DARK_GREEN + "If u regret ur decision, u can always" + ChatColor.GOLD + " /tpdeny " + target.getName());
+            setAllowed(playerUUID, targetUUID, true);
+            player.sendMessage(ChatColor.GREEN + "U allowed " +  ChatColor.AQUA + target.getName() + ChatColor.GREEN + " 2 teleport 2 you.");
+            player.sendMessage(ChatColor.DARK_GREEN + "If u regret ur decision, u can always" + ChatColor.GOLD + " /tpremove " + target.getName());
+            if (requesters.containsKey(target) && requesters.remove(target) == player)
+                target.sendMessage(player.getDisplayName() + ChatColor.GREEN + " has accepted ur teleport pr0posal. U may now /tp 2 dem.");
             return true;
-        }
-        else if (cmd.getName().equalsIgnoreCase("tpblock"))
-        {
-            if (allowedPlayers.containsKey(player))
-                allowedPlayers.get(player).remove(target);
-
         }
         //Not enough arguments
         return false;
     }
+
+    public String canTeleport(Player player, Player target)
+    {
+        //TODO: preciousstones/whatever-claim-system-we-use check
+        return null;
+    }
+
+    public void preTeleportPlayer(Player player, Player target)
+    {
+        String allowed = canTeleport(player, target);
+        if (allowed != null)
+        {
+            player.sendMessage(ChatColor.RED + allowed);
+            return;
+        }
+
+        boolean applyWarmup = true;
+        if (player.hasPermission(teleportWarmupPermission) && target.hasPermission(teleportWarmupPermission))
+            applyWarmup = false;
+        teleportPlayer(player, target, target.getLocation(), applyWarmup);
+    }
+
+    public void teleportPlayer(Player player, Player target, final Location targetLocation, boolean warmup)
+    {
+        if (!warmup)
+        {
+            player.teleport(target);
+            postTeleportPlayer(player, target);
+            return;
+        }
+
+        player.sendMessage(ChatColor.GOLD + "0k pls stay still while we beem u out");
+        int anIDThing = ThreadLocalRandom.current().nextInt();
+        pendingTeleports.put(player, anIDThing);
+
+        new BukkitRunnable()
+        {
+            public void run()
+            {
+                if (pendingTeleports.containsKey(player) && pendingTeleports.get(player).equals(anIDThing))
+                {
+                    player.teleport(targetLocation);
+                    postTeleportPlayer(player, target);
+                }
+            }
+        }.runTaskLater(this, 140L);
+    }
+
+    public void postTeleportPlayer(Player player, Player target)
+    {
+        player.sendMessage(requestTeleportSuccessMessage + target.getDisplayName());
+        //TODO: ActionAPI
+    }
+
+    //TODO: things to cancel warmup
 }
