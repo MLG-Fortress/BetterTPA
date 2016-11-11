@@ -124,11 +124,18 @@ public class BetterTPA extends JavaPlugin implements Listener
         if (!(sender instanceof Player))
             return false;
 
+        final Player player = (Player)sender;
+        String playerUUID = player.getUniqueId().toString();
+
+        if (cmd.getName().equalsIgnoreCase("tplist"))
+        {
+            //TODO: implement tplist
+            return false;
+        }
+
         if (args.length < 1)
             return false;
 
-        final Player player = (Player)sender;
-        String playerUUID = player.getUniqueId().toString();
         final Player target = Bukkit.getPlayerExact(args[0]);
         String targetUUID = target.getUniqueId().toString();
 

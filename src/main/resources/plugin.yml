@@ -3,4 +3,17 @@ author: RoboMWM
 version: ${project.version}
 main: me.robomwm.BetterTPA.BetterTPA
 commands:
-    compass: {}
+    tpblock:
+      usage: /tpblock <player> - Blocks a player from sending u teleport requests.
+      aliases: [tpablock, tpban, tpaban, tpdeny, tpadeny]
+    tpallow:
+      usage: /tpallow <player> - Allows a player to teleport 2 u.
+      aliases: [tpyes, tpayes, tpaccept]
+    tpa:
+      usage: /tpa <player> - Teleports u 2 dat player. Sends a teleport proposal if it is ur 1st time.
+      aliases: [tp, tpask]
+    tpremove:
+      usage: /tpremove <player> - Removes a player from ur /tpallow list.
+    tplist:
+      usage: Not implemented yet.
+      aliases: [tpalist]
