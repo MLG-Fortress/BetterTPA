@@ -20,6 +20,7 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 
 /**
@@ -41,7 +42,7 @@ public class BetterTPA extends JavaPlugin implements Listener
     Set<Player> tpToggled = new HashSet<>();
     Map<Player, Integer> pendingTeleports = new HashMap<>();
 
-    Map<String, LinkedHashMap<String, Boolean>> allowedPlayers = new LinkedHashMap<>();
+    Map<UUID, LinkedHashMap<UUID, Boolean>> allowedPlayers = new LinkedHashMap<>();
 
     @Override
     public void onEnable()
@@ -76,11 +77,12 @@ public class BetterTPA extends JavaPlugin implements Listener
         allowedPlayersSection = storage.getConfigurationSection("allowedPlayers");
         if (allowedPlayersSection == null)
             return;
-        for (String uuid : allowedPlayersSection.getKeys(false))
+        for (String uuidString : allowedPlayersSection.getKeys(false))
         {
-            LinkedHashMap<String, Boolean> allowedPlayerThingy = new LinkedHashMap<>();
-            for (String allowedUUIDs : allowedPlayersSection.getConfigurationSection(uuid).getKeys(false))
-                allowedPlayerThingy.put(allowedUUIDs, (Boolean)allowedPlayersSection.getConfigurationSection(uuid).get(allowedUUIDs));
+            UUID uuid = UUID.fromString(uuidString);
+            LinkedHashMap<UUID, Boolean> allowedPlayerThingy = new LinkedHashMap<>();
+            for (String allowedUUIDs : allowedPlayersSection.getConfigurationSection(uuidString).getKeys(false))
+                allowedPlayerThingy.put(UUID.fromString(allowedUUIDs), (Boolean)allowedPlayersSection.getConfigurationSection(uuidString).get(allowedUUIDs));
             allowedPlayers.put(uuid, allowedPlayerThingy);
         }
     }
@@ -106,7 +108,7 @@ public class BetterTPA extends JavaPlugin implements Listener
      * Check a player's /tpacceptance status or w/e
      * @param returnNullIfNotSpecified if true, will return null if target is not allowed nor blocked. Otherwise, will return false for this case
      */
-    public Boolean isAllowed(String playerUUID, String targetUUID, boolean returnNullIfNotSpecified)
+    public Boolean isAllowed(UUID playerUUID, UUID targetUUID, boolean returnNullIfNotSpecified)
     {
         Boolean result;
         if (!allowedPlayers.containsKey(playerUUID))
@@ -133,11 +135,13 @@ public class BetterTPA extends JavaPlugin implements Listener
      * @param targetUUID
      * @param allow
      */
-    public void setAllowed(String playerUUID, String targetUUID, Boolean allow)
+    public void setAllowed(UUID playerUUID, UUID targetUUID, Boolean allow)
     {
-        LinkedHashMap<String, Boolean> playerToAddMaybe = new LinkedHashMap<>();
-        if (allowedPlayers.containsKey(playerUUID))
-            playerToAddMaybe.putAll(allowedPlayers.get(playerUUID));
+        LinkedHashMap<UUID, Boolean> playerToAddMaybe;
+        if (!allowedPlayers.containsKey(playerUUID))
+            playerToAddMaybe = new LinkedHashMap<>();
+        else
+            playerToAddMaybe = allowedPlayers.get(playerUUID);
         playerToAddMaybe.put(targetUUID, allow);
         allowedPlayers.put(playerUUID, playerToAddMaybe);
         getLogger().info(String.valueOf(allowedPlayers.get(playerUUID).get(targetUUID)));
@@ -151,7 +155,7 @@ public class BetterTPA extends JavaPlugin implements Listener
             return false;
 
         final Player player = (Player)sender;
-        String playerUUID = player.getUniqueId().toString();
+        UUID playerUUID = player.getUniqueId();
 
         if (cmd.getName().equalsIgnoreCase("tplist"))
         {
@@ -173,7 +177,7 @@ public class BetterTPA extends JavaPlugin implements Listener
             return true;
         }
 
-        String targetUUID = target.getUniqueId().toString();
+        UUID targetUUID = target.getUniqueId();
 
         //Requesting to tp/accept urself? pls
         if (target == player)
