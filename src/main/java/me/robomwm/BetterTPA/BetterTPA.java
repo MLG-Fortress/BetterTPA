@@ -41,7 +41,7 @@ public class BetterTPA extends JavaPlugin implements Listener
     Set<Player> tpToggled = new HashSet<>();
     Map<Player, Integer> pendingTeleports = new HashMap<>();
 
-    Map<String, LinkedHashMap<String, Boolean>> allowedPlayers;
+    Map<String, LinkedHashMap<String, Boolean>> allowedPlayers = new LinkedHashMap<>();
 
     @Override
     public void onEnable()
