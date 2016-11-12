@@ -135,10 +135,8 @@ public class BetterTPA extends JavaPlugin implements Listener
         else
             playerToAddMaybe = allowedPlayers.get(playerUUID);
         playerToAddMaybe.put(targetUUID, allow);
+        allowedPlayers.remove(playerUUID);
         allowedPlayers.put(playerUUID, playerToAddMaybe);
-        for (String stuff : allowedPlayers.get(playerUUID).keySet())
-            getLogger().info(stuff);
-        getLogger().info(String.valueOf(allowedPlayers.get(playerUUID).get(targetUUID)));
     }
 
     @Override
