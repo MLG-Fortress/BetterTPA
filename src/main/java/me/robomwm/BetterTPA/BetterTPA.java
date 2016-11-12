@@ -99,7 +99,8 @@ public class BetterTPA extends JavaPlugin implements Listener
         Boolean result;
         if (allowedPlayers.getConfigurationSection(playerUUID) == null)
             result = null;
-        result = (Boolean)allowedPlayers.getConfigurationSection(playerUUID).get(targetUUID);
+        else
+            result = (Boolean)allowedPlayers.getConfigurationSection(playerUUID).get(targetUUID);
 
         if (result == null && !returnNullIfNotSpecified)
             return false;
