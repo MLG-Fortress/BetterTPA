@@ -28,7 +28,7 @@ import java.util.concurrent.ThreadLocalRandom;
 public class BetterTPA extends JavaPlugin implements Listener
 {
     YamlConfiguration storage;
-    ConfigurationSection allowedPlayers;
+    ConfigurationSection allowedPlayersSection;
     String blockedMessage = ChatColor.DARK_GREEN + " will no longer be able to send teleport requests 2 u. Use" +
             ChatColor.GOLD + " /tpremove" + ChatColor.DARK_GREEN + " to undo dis if dis wuz mistake.";
     String removeMessage = ChatColor.DARK_GREEN + " was removed from ur /tpallow. FYI, u can view ur /tplist";
@@ -40,6 +40,7 @@ public class BetterTPA extends JavaPlugin implements Listener
     Set<Player> recentRequesters = new HashSet<>();
     Set<Player> tpToggled = new HashSet<>();
     Map<Player, Integer> pendingTeleports = new HashMap<>();
+    Map<String, LinkedHashMap<String, Boolean>> allowedPlayers = new HashMap<>();
 
     @Override
     public void onEnable()
@@ -67,11 +68,19 @@ public class BetterTPA extends JavaPlugin implements Listener
             storage = YamlConfiguration.loadConfiguration(storageFile);
 
         //Create appropriate configurationsections, if they don't exist
-        if (storage.getConfigurationSection("allowedPlayers") == null)
-            storage.set("allowedPlayers", new LinkedHashMap<String, String>());
+        if (storage.getConfigurationSection("allowedPlayersSection") == null)
+            storage.set("allowedPlayersSection", new LinkedHashMap<String, String>());
 
         //Set variables/shortcuts
-        allowedPlayers = storage.getConfigurationSection("allowedPlayers");
+        allowedPlayersSection = storage.getConfigurationSection("allowedPlayersSection");
+
+        for (String uuid : allowedPlayersSection.getKeys(false))
+        {
+            LinkedHashMap<String, Boolean> allowedPlayerThingy = new LinkedHashMap<>();
+            for (String allowedUUIDs : allowedPlayersSection.getConfigurationSection(uuid).getKeys(false))
+                allowedPlayerThingy.put(allowedUUIDs, (Boolean)allowedPlayersSection.getConfigurationSection(uuid).get(allowedUUIDs));
+            allowedPlayers.put(uuid, allowedPlayerThingy);
+        }
     }
 
     public void onDisable()
@@ -81,6 +90,7 @@ public class BetterTPA extends JavaPlugin implements Listener
         {
             try
             {
+                storage.set("allowedPlayers", allowedPlayers);
                 storage.save(storageFile);
             }
             catch (IOException e) //really
@@ -97,10 +107,10 @@ public class BetterTPA extends JavaPlugin implements Listener
     public Boolean isAllowed(String playerUUID, String targetUUID, boolean returnNullIfNotSpecified)
     {
         Boolean result;
-        if (allowedPlayers.getConfigurationSection(playerUUID) == null)
+        if (!allowedPlayers.containsKey(playerUUID))
             result = null;
         else
-            result = (Boolean)allowedPlayers.getConfigurationSection(playerUUID).get(targetUUID);
+            result = allowedPlayers.get(playerUUID).get(targetUUID);
 
         if (result == null && !returnNullIfNotSpecified)
             return false;
@@ -116,9 +126,11 @@ public class BetterTPA extends JavaPlugin implements Listener
      */
     public void setAllowed(String playerUUID, String targetUUID, Boolean allow)
     {
-        if (allowedPlayers.getConfigurationSection(playerUUID) == null)
-            allowedPlayers.set(playerUUID, new HashMap<Player, Boolean>());
-        allowedPlayers.getConfigurationSection(playerUUID).set(targetUUID, allow);
+        LinkedHashMap<String, Boolean> playerToAddMaybe = new LinkedHashMap<>();
+        if (allowedPlayers.containsKey(playerUUID))
+            playerToAddMaybe = allowedPlayers.get(playerUUID);
+        playerToAddMaybe.put(targetUUID, allow);
+        allowedPlayers.put(playerUUID, playerToAddMaybe);
     }
 
     @Override
