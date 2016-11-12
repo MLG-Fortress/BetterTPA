@@ -110,9 +110,15 @@ public class BetterTPA extends JavaPlugin implements Listener
     {
         Boolean result;
         if (!allowedPlayers.containsKey(playerUUID))
+        {
             result = null;
+            getLogger().info("not even in it");
+        }
         else
+        {
             result = allowedPlayers.get(playerUUID).get(targetUUID);
+            getLogger().info(String.valueOf(allowedPlayers.get(playerUUID).size()));
+        }
         getLogger().info(String.valueOf(result));
 
         if (result == null && !returnNullIfNotSpecified)
@@ -134,6 +140,8 @@ public class BetterTPA extends JavaPlugin implements Listener
             playerToAddMaybe.putAll(allowedPlayers.get(playerUUID));
         playerToAddMaybe.put(targetUUID, allow);
         allowedPlayers.put(playerUUID, playerToAddMaybe);
+        getLogger().info(String.valueOf(allowedPlayers.get(playerUUID).get(targetUUID)));
+        getLogger().info(String.valueOf(allowedPlayers.get(playerUUID).size()));
     }
 
     @Override
