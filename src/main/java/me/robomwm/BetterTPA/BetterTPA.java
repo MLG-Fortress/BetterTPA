@@ -109,10 +109,17 @@ public class BetterTPA extends JavaPlugin implements Listener
     {
         Boolean result;
         if (!allowedPlayers.containsKey(playerUUID))
+        {
             result = null;
-        else
-            result = allowedPlayers.get(playerUUID).get(targetUUID);
+            this.getLogger().info("no entry in allowedPlayers");
+        }
 
+        else
+        {
+            result = allowedPlayers.get(playerUUID).get(targetUUID);
+            this.getLogger().info("ok, so " + String.valueOf(result));
+        }
+        
         if (result == null && !returnNullIfNotSpecified)
             return false;
 
