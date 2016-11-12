@@ -212,8 +212,9 @@ public class BetterTPA extends JavaPlugin implements Listener
                     player.sendMessage(ChatColor.RED + "ayy m8 slow down with ur teleport pr0posals.");
                     return true;
                 }
-                player.sendMessage(ChatColor.AQUA + "0k, but 1st, " + target.getDisplayName() + ChatColor.AQUA + " n33ds 2 accept ur teleport proposal. We'll let u know if they say yes.");
-                target.sendMessage(player.getDisplayName() + ChatColor.BLUE + " w0ts 2 tp 2 u. U can:" + ChatColor.GOLD + " /tpallow " + player.getName() + ChatColor.BLUE + "\nor u can" + ChatColor.GOLD + " /tpblock " + player.getName());
+                player.sendMessage(ChatColor.AQUA + "0k, but 1st, " + target.getDisplayName() + ChatColor.AQUA + " n33ds 2 accept ur teleport proposal.\nWe'll let u know if they say yes.");
+                target.sendMessage(player.getDisplayName() + ChatColor.AQUA + " w0ts 2 tp 2 u." +
+                        "\nU can: " + ChatColor.GOLD + "/tpallow " + player.getName() + ChatColor.AQUA + " or " + ChatColor.GOLD + "/tpblock " + player.getName());
                 requesters.put(player, target);
                 recentRequesters.add(player);
                 new BukkitRunnable()
@@ -243,9 +244,9 @@ public class BetterTPA extends JavaPlugin implements Listener
         {
             setAllowed(playerUUID, targetUUID, true);
             player.sendMessage(ChatColor.GREEN + "U allowed " +  ChatColor.AQUA + target.getName() + ChatColor.GREEN + " 2 teleport 2 you.");
-            player.sendMessage(ChatColor.DARK_GREEN + "If u regret ur decision, u can always" + ChatColor.GOLD + " /tpremove " + target.getName());
+            player.sendMessage(ChatColor.GREEN + "If u regret ur decision, u can " + ChatColor.GOLD + "/tpremove " + target.getName());
             if (requesters.containsKey(target) && requesters.remove(target) == player)
-                target.sendMessage(player.getDisplayName() + ChatColor.GREEN + " has accepted ur teleport pr0posal. U may now /tp 2 dem.");
+                target.sendMessage(player.getDisplayName() + ChatColor.GREEN + " has accepted ur teleport pr0posal.\nU may now /tp " + player.getName());
             return true;
         }
         //Not enough arguments
@@ -285,7 +286,7 @@ public class BetterTPA extends JavaPlugin implements Listener
             return;
         }
 
-        player.sendMessage(ChatColor.GOLD + "0k pls stay still while we beem u out");
+        player.sendMessage(ChatColor.GOLD + "0k pls standby while we beem u 2 " + target.getDisplayName());
         int anIDThing = ThreadLocalRandom.current().nextInt();
         pendingTeleports.put(player, anIDThing);
 
