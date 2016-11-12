@@ -133,6 +133,7 @@ public class BetterTPA extends JavaPlugin implements Listener
         else
             playerToAddMaybe = allowedPlayers.get(playerUUID);
         playerToAddMaybe.put(targetUUID, allow);
+        getLogger().info(targetUUID + String.valueOf(allow));
         allowedPlayers.put(playerUUID, playerToAddMaybe);
     }
 
