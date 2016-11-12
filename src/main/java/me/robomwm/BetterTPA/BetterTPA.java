@@ -28,6 +28,7 @@ import java.util.concurrent.ThreadLocalRandom;
 public class BetterTPA extends JavaPlugin implements Listener
 {
     YamlConfiguration storage;
+    ConfigurationSection allowedPlayers;
     String blockedMessage = ChatColor.DARK_GREEN + " will no longer be able to send teleport requests 2 u. Use" +
             ChatColor.GOLD + " /tpremove" + ChatColor.DARK_GREEN + " to undo dis if dis wuz mistake.";
     String removeMessage = ChatColor.DARK_GREEN + " was removed from ur /tpallow. FYI, u can view ur /tplist";
@@ -68,6 +69,9 @@ public class BetterTPA extends JavaPlugin implements Listener
         //Create appropriate configurationsections, if they don't exist
         if (storage.getConfigurationSection("allowedPlayers") == null)
             storage.set("allowedPlayers", new LinkedHashMap<String, String>());
+
+        //Set variables/shortcuts
+        allowedPlayers = storage.getConfigurationSection("allowedPlayers");
     }
 
     public void onDisable()
@@ -93,10 +97,10 @@ public class BetterTPA extends JavaPlugin implements Listener
     public Boolean isAllowed(String playerUUID, String targetUUID, boolean returnNullIfNotSpecified)
     {
         Boolean result;
-        if (storage.getConfigurationSection(playerUUID) == null)
+        if (allowedPlayers.getConfigurationSection(playerUUID) == null)
             result = null;
         else
-            result = (Boolean)storage.getConfigurationSection(playerUUID).get(targetUUID);
+            result = (Boolean)allowedPlayers.getConfigurationSection(playerUUID).get(targetUUID);
 
         if (result == null && !returnNullIfNotSpecified)
             return false;
@@ -112,9 +116,9 @@ public class BetterTPA extends JavaPlugin implements Listener
      */
     public void setAllowed(String playerUUID, String targetUUID, Boolean allow)
     {
-        if (storage.getConfigurationSection(playerUUID) == null)
-            storage.set(playerUUID, new LinkedHashMap<Player, Boolean>());
-        storage.getConfigurationSection(playerUUID).set(targetUUID, allow);
+        if (allowedPlayers.getConfigurationSection(playerUUID) == null)
+            allowedPlayers.set(playerUUID, new HashMap<Player, Boolean>());
+        allowedPlayers.getConfigurationSection(playerUUID).set(targetUUID, allow);
     }
 
     @Override
