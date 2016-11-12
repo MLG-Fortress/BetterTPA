@@ -68,12 +68,13 @@ public class BetterTPA extends JavaPlugin implements Listener
             storage = YamlConfiguration.loadConfiguration(storageFile);
 
         //Create appropriate configurationsections, if they don't exist
-        if (storage.getConfigurationSection("allowedPlayersSection") == null)
-            storage.set("allowedPlayersSection", new LinkedHashMap<String, String>());
+        if (storage.getConfigurationSection("allowedPlayers") == null)
+            storage.set("allowedPlayers", new LinkedHashMap<String, String>());
 
         //Set variables/shortcuts
-        allowedPlayersSection = storage.getConfigurationSection("allowedPlayersSection");
-
+        allowedPlayersSection = storage.getConfigurationSection("allowedPlayers");
+        if (allowedPlayersSection == null)
+            return;
         for (String uuid : allowedPlayersSection.getKeys(false))
         {
             LinkedHashMap<String, Boolean> allowedPlayerThingy = new LinkedHashMap<>();
