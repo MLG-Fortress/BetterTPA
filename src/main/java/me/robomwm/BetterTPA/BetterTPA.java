@@ -255,7 +255,10 @@ public class BetterTPA extends JavaPlugin implements Listener
 
     public String canTeleport(Player player, Player target)
     {
-        //TODO: preciousstones/whatever-claim-system-we-use check
+        PreTPATeleportEvent event = new PreTPATeleportEvent(player);
+        getServer().getPluginManager().callEvent(event);
+        if (event.isCancelled())
+            return "";
 
         if (target.getGameMode() == GameMode.CREATIVE)
             return target.getName() + " is currently in a non-public (developing) world.";
@@ -270,6 +273,8 @@ public class BetterTPA extends JavaPlugin implements Listener
             player.sendMessage(ChatColor.RED + allowed);
             return;
         }
+        if (allowed.isEmpty())
+            return;
 
         boolean applyWarmup = true;
         if (player.hasPermission(teleportWarmupPermission) && target.hasPermission(teleportWarmupPermission))
@@ -306,7 +311,7 @@ public class BetterTPA extends JavaPlugin implements Listener
     public void postTeleportPlayer(Player player, Player target)
     {
         player.sendMessage(requestTeleportSuccessMessage + target.getDisplayName());
-        //TODO: ActionAPI
+        PostTPATeleportEvent event = new PostTPATeleportEvent(player, target, false);
     }
 
     //TODO: things to cancel warmup
