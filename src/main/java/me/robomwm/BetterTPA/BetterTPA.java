@@ -109,11 +109,13 @@ public class BetterTPA extends JavaPlugin implements Listener
     public Boolean isAllowed(String playerUUID, String targetUUID, boolean returnNullIfNotSpecified)
     {
         Boolean result;
+        //Check if target has allowed anyone
         if (!allowedPlayers.containsKey(targetUUID))
             result = null;
         else
             result = allowedPlayers.get(targetUUID).get(playerUUID);
 
+        //Return false instead of null if we should not return null
         if (result == null && !returnNullIfNotSpecified)
             return false;
 
@@ -128,11 +130,17 @@ public class BetterTPA extends JavaPlugin implements Listener
      */
     public void setAllowed(String playerUUID, String targetUUID, Boolean allow)
     {
-        LinkedHashMap<String, Boolean> playerToAddMaybe = new LinkedHashMap<>();
+        //If player already has an "allowlist," just add to this list.
         if (allowedPlayers.containsKey(playerUUID))
-            playerToAddMaybe.putAll(allowedPlayers.get(playerUUID));
-        playerToAddMaybe.put(targetUUID, allow);
-        allowedPlayers.put(playerUUID, playerToAddMaybe);
+            allowedPlayers.get(playerUUID).put(targetUUID, allow);
+
+        //Otherwise, if never allowed anyone before, create the "allowlist"
+        else
+        {
+            LinkedHashMap<String, Boolean> playerToAddMaybe = new LinkedHashMap<>();
+            playerToAddMaybe.put(targetUUID, allow);
+            allowedPlayers.put(playerUUID, playerToAddMaybe);
+        }
     }
 
     @Override
