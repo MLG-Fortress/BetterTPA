@@ -40,7 +40,8 @@ public class BetterTPA extends JavaPlugin implements Listener
     Set<Player> recentRequesters = new HashSet<>();
     Set<Player> tpToggled = new HashSet<>();
     Map<Player, Integer> pendingTeleports = new HashMap<>();
-    Map<String, LinkedHashMap<String, Boolean>> allowedPlayers = new HashMap<>();
+
+    Map<String, LinkedHashMap<String, Boolean>> allowedPlayers;
 
     @Override
     public void onEnable()
@@ -133,8 +134,9 @@ public class BetterTPA extends JavaPlugin implements Listener
         else
             playerToAddMaybe = allowedPlayers.get(playerUUID);
         playerToAddMaybe.put(targetUUID, allow);
-        getLogger().info(targetUUID + String.valueOf(allow));
         allowedPlayers.put(playerUUID, playerToAddMaybe);
+        for (String stuff : allowedPlayers.get(playerUUID).keySet())
+            getLogger().info(stuff);
     }
 
     @Override
