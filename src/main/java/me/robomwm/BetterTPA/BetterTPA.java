@@ -113,6 +113,7 @@ public class BetterTPA extends JavaPlugin implements Listener
             result = null;
         else
             result = allowedPlayers.get(playerUUID).get(targetUUID);
+        getLogger().info(String.valueOf(result));
 
         if (result == null && !returnNullIfNotSpecified)
             return false;
@@ -137,6 +138,7 @@ public class BetterTPA extends JavaPlugin implements Listener
         allowedPlayers.put(playerUUID, playerToAddMaybe);
         for (String stuff : allowedPlayers.get(playerUUID).keySet())
             getLogger().info(stuff);
+        getLogger().info(String.valueOf(allowedPlayers.get(playerUUID).get(targetUUID)));
     }
 
     @Override
