@@ -130,7 +130,7 @@ public class BetterTPA extends JavaPlugin implements Listener
     public void setAllowed(String playerUUID, String targetUUID, Boolean allow)
     {
         LinkedHashMap<String, Boolean> playerToAddMaybe = new LinkedHashMap<>();
-        if (!allowedPlayers.containsKey(playerUUID))
+        if (allowedPlayers.containsKey(playerUUID))
             playerToAddMaybe.putAll(allowedPlayers.get(playerUUID));
         playerToAddMaybe.put(targetUUID, allow);
         allowedPlayers.put(playerUUID, playerToAddMaybe);
