@@ -255,13 +255,14 @@ public class BetterTPA extends JavaPlugin implements Listener
 
     public String canTeleport(Player player, Player target)
     {
+        if (target.getGameMode() == GameMode.CREATIVE)
+            return target.getName() + " is currently in a non-public (developing) world.";
+
         PreTPATeleportEvent event = new PreTPATeleportEvent(player);
         getServer().getPluginManager().callEvent(event);
         if (event.isCancelled())
             return "";
 
-        if (target.getGameMode() == GameMode.CREATIVE)
-            return target.getName() + " is currently in a non-public (developing) world.";
         return null;
     }
 
