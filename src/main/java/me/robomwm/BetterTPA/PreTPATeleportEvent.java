@@ -14,6 +14,11 @@ public class PreTPATeleportEvent extends Event {
     public HandlerList getHandlers() {
         return handlers;
     }
+    public static HandlerList getHandlerList()
+    {
+        return handlers;
+    }
+
 
     private Player player;
     private boolean cancelled = false;

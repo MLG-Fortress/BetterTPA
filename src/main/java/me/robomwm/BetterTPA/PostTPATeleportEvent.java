@@ -13,6 +13,11 @@ public class PostTPATeleportEvent extends Event {
     public HandlerList getHandlers() {
         return handlers;
     }
+    public static HandlerList getHandlerList()
+    {
+        return handlers;
+    }
+
 
     private Player player;
     private Player target;
