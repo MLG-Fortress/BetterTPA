@@ -270,11 +270,11 @@ public class BetterTPA extends JavaPlugin implements Listener
         String allowed = canTeleport(player, target);
         if (allowed != null)
         {
+            if (allowed.isEmpty())
+                return;
             player.sendMessage(ChatColor.RED + allowed);
             return;
         }
-        else if (allowed.isEmpty())
-            return;
 
         boolean applyWarmup = true;
         if (player.hasPermission(teleportWarmupPermission) && target.hasPermission(teleportWarmupPermission))
