@@ -212,7 +212,7 @@ public class BetterTPA extends JavaPlugin implements Listener
                     player.sendMessage(ChatColor.RED + "ayy m8 slow down with ur teleport pr0posals.");
                     return true;
                 }
-                player.sendMessage(ChatColor.AQUA + "0k, but 1st, " + target.getDisplayName() + ChatColor.AQUA + " n33ds 2 accept ur teleport proposal.\nWe'll let u know if they say yes.");
+                player.sendMessage(ChatColor.AQUA + "0k, but 1st, " + target.getDisplayName() + ChatColor.AQUA + " n33ds 2 accept ur teleport proposal.");
                 target.sendMessage(player.getDisplayName() + ChatColor.AQUA + " w0ts 2 tp 2 u." +
                         "\nU can: " + ChatColor.GOLD + "/tpallow " + player.getName() + ChatColor.AQUA + " or " + ChatColor.GOLD + "/tpblock " + player.getName());
                 requesters.put(player, target);
