@@ -223,7 +223,7 @@ public class BetterTPA extends JavaPlugin implements Listener
                     {
                         recentRequesters.remove(player);
                     }
-                }.runTaskLater(this, 200L);
+                }.runTaskLater(this, 300L);
                 return true;
             }
 
