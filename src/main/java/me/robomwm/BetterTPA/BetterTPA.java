@@ -106,7 +106,7 @@ public class BetterTPA extends JavaPlugin implements Listener
      * Check a player's /tpacceptance status or w/e
      * @param returnNullIfNotSpecified if true, will return null if target is not allowed nor blocked. Otherwise, will return false for this case
      */
-    public Boolean isAllowed(String playerUUID, String targetUUID, boolean returnNullIfNotSpecified)
+    private Boolean isAllowed(String playerUUID, String targetUUID, boolean returnNullIfNotSpecified)
     {
         Boolean result;
         //Check if target has allowed anyone
@@ -120,6 +120,17 @@ public class BetterTPA extends JavaPlugin implements Listener
             return false;
 
         return result;
+    }
+
+    /**
+     * Cancels an existing teleport task
+     * Used for "warmup cancelers" in event handlers or when making a new request during a warmup stage
+     * Private for now, as I don't see a use to make public
+     * @param player
+     */
+    private void cancelExistingTeleport(Player player)
+    {
+        pendingTeleports.remove(player);
     }
 
     /**
@@ -235,7 +246,7 @@ public class BetterTPA extends JavaPlugin implements Listener
             }
 
             //Allowed
-            pendingTeleports.remove(player);
+            cancelExistingTeleport(player);
             preTeleportPlayer(player, target);
             return true;
         }
@@ -253,46 +264,57 @@ public class BetterTPA extends JavaPlugin implements Listener
         return false;
     }
 
-    public String canTeleport(Player player, Player target)
+    private boolean canTeleport(Player player, Location targetLocation, Player target)
     {
-        if (target.getGameMode() == GameMode.CREATIVE)
-            return target.getName() + " is currently in a non-public (developing) world.";
+        PreTPATeleportEvent event = new PreTPATeleportEvent(player, targetLocation);
 
-        PreTPATeleportEvent event = new PreTPATeleportEvent(player);
-        getServer().getPluginManager().callEvent(event);
-        if (event.isCancelled())
-            return "";
-
-        return null;
-    }
-
-    public void preTeleportPlayer(Player player, Player target)
-    {
-        String allowed = canTeleport(player, target);
-        if (allowed != null)
+        //Creative check
+        if (target != null && target.getGameMode() == GameMode.CREATIVE)
         {
-            if (allowed.isEmpty())
-                return;
-            player.sendMessage(ChatColor.RED + allowed);
-            return;
+            event.setReason(target.getName() + " is not able to be teleported to at this time.");
+            event.setCancelled(true);
         }
 
+        getServer().getPluginManager().callEvent(event);
+        if (event.isCancelled())
+        {
+            if (target != null && event.getReason() != null && !event.getReason().isEmpty())
+                target.sendMessage(ChatColor.RED + event.getReason());
+            return false;
+        }
+
+        return true;
+    }
+
+    private void preTeleportPlayer(Player player, Player target)
+    {
         boolean applyWarmup = true;
         if (player.hasPermission(teleportWarmupPermission) && target.hasPermission(teleportWarmupPermission))
             applyWarmup = false;
-        teleportPlayer(player, target, target.getLocation(), applyWarmup);
+        teleportPlayer(player, target.getDisplayName(), target.getLocation(), applyWarmup, target);
     }
 
-    public void teleportPlayer(Player player, Player target, final Location targetLocation, boolean warmup)
+    /**
+     *
+     * @param player
+     * @param targetName
+     * @param targetLocation
+     * @param warmup
+     * @param target target player - set to null if not teleporting to a player
+     */
+    public void teleportPlayer(Player player, String targetName, final Location targetLocation, boolean warmup, Player target)
     {
+        if (!canTeleport(player, targetLocation, target))
+            return;
+
         if (!warmup)
         {
-            player.teleport(target);
+            player.teleport(targetLocation);
             postTeleportPlayer(player, target);
             return;
         }
 
-        player.sendMessage(ChatColor.GOLD + "0k pls standby while we beem u 2 " + target.getDisplayName());
+        player.sendMessage(ChatColor.GOLD + "0k pls standby while we beem u 2 " + targetName);
         int anIDThing = ThreadLocalRandom.current().nextInt();
         pendingTeleports.put(player, anIDThing);
 
@@ -309,10 +331,11 @@ public class BetterTPA extends JavaPlugin implements Listener
         }.runTaskLater(this, 140L);
     }
 
-    public void postTeleportPlayer(Player player, Player target)
+    private void postTeleportPlayer(Player player, Player target)
     {
         player.sendMessage(requestTeleportSuccessMessage + target.getDisplayName());
         PostTPATeleportEvent event = new PostTPATeleportEvent(player, target, false);
+        getServer().getPluginManager().callEvent(event);
     }
 
     //TODO: things to cancel warmup

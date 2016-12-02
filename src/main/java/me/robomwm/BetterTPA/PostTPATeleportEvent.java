@@ -40,6 +40,10 @@ public class PostTPATeleportEvent extends Event {
         return this.player;
     }
 
+    /**
+     * Nullcheck!
+     * @return null if no intended target player was specified
+     */
     public Player getTarget()
     {
         return this.target;

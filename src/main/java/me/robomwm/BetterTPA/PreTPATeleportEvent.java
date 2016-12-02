@@ -22,11 +22,18 @@ public class PreTPATeleportEvent extends Event {
 
     private Player player;
     private boolean cancelled = false;
-    String whyCancelled = null;
+    private Location targetLocation;
+    String reason = null;
 
-    PreTPATeleportEvent(Player player) //Will implement more if requested to do so
+    PreTPATeleportEvent(Player player, Location targetLocation) //Will implement more if requested to do so
     {
         this.player = player;
+        this.targetLocation = targetLocation;
+    }
+
+    public Location getTargetLocation()
+    {
+        return this.getTargetLocation();
     }
 
     public void setCancelled(boolean cancel)
@@ -42,5 +49,20 @@ public class PreTPATeleportEvent extends Event {
     public Player getPlayer()
     {
         return this.player;
+    }
+
+    /**
+     * If you canceled this event, use this to tell the player why it was canceled
+     * Idk if this follows the standard, but w/e makes it easier for me
+     * @param reason
+     */
+    public void setReason(String reason)
+    {
+        this.reason = reason;
+    }
+
+    public String getReason()
+    {
+        return this.reason;
     }
 }
