@@ -335,7 +335,7 @@ public class BetterTPA extends JavaPlugin implements Listener
         {
             public void run()
             {
-                if (pendingTeleports.containsKey(player) && pendingTeleports.remove(player).equals(anIDThing))
+                if (pendingTeleports.containsKey(player) && pendingTeleports.remove(player).getId() == anIDThing)
                 {
                     player.teleport(targetLocation);
                     postTeleportPlayer(player, target);
