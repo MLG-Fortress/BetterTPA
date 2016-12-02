@@ -8,8 +8,14 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.player.PlayerMoveEvent;
+import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 
@@ -36,10 +42,11 @@ public class BetterTPA extends JavaPlugin implements Listener
     String requestTeleportSuccessMessage = ChatColor.GREEN + "U successfully teleported 2 ";
     String targetTeleportSuccessMessage = ChatColor.AQUA + " teleported 2 u";
     String teleportWarmupPermission = "bettertpa.nowarmup";
+    String rejectMessage = ChatColor.DARK_RED + "culdnt lock on 2 ur location! U must've moved or was hit! :(";
     Map<Player, Player> requesters = new HashMap<>();
     Set<Player> recentRequesters = new HashSet<>();
     Set<Player> tpToggled = new HashSet<>();
-    Map<Player, Integer> pendingTeleports = new HashMap<>();
+    Map<Player, PendingTeleportee> pendingTeleports = new HashMap<>();
 
     Map<String, LinkedHashMap<String, Boolean>> allowedPlayers = new LinkedHashMap<>();
 
@@ -128,9 +135,15 @@ public class BetterTPA extends JavaPlugin implements Listener
      * Private for now, as I don't see a use to make public
      * @param player
      */
-    private void cancelExistingTeleport(Player player)
+    private void cancelPendingTeleport(Player player, boolean sendMessage)
     {
-        pendingTeleports.remove(player);
+        if (pendingTeleports.remove(player) != null && sendMessage)
+            player.sendMessage(rejectMessage);
+    }
+
+    private PendingTeleportee getPendingTeleport(Player player)
+    {
+        return pendingTeleports.get(player);
     }
 
     /**
@@ -246,7 +259,7 @@ public class BetterTPA extends JavaPlugin implements Listener
             }
 
             //Allowed
-            cancelExistingTeleport(player);
+            cancelPendingTeleport(player, false);
             preTeleportPlayer(player, target);
             return true;
         }
@@ -316,7 +329,7 @@ public class BetterTPA extends JavaPlugin implements Listener
 
         player.sendMessage(ChatColor.GOLD + "0k pls standby while we beem u 2 " + targetName);
         int anIDThing = ThreadLocalRandom.current().nextInt();
-        pendingTeleports.put(player, anIDThing);
+        pendingTeleports.put(player, new PendingTeleportee(player, anIDThing));
 
         new BukkitRunnable()
         {
@@ -338,5 +351,54 @@ public class BetterTPA extends JavaPlugin implements Listener
         getServer().getPluginManager().callEvent(event);
     }
 
-    //TODO: things to cancel warmup
+    /**
+     * Events to handle canceling pending teleport
+     */
+
+    @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
+    public void onPlayerMove(PlayerMoveEvent event)
+    {
+        Player player = event.getPlayer();
+        PendingTeleportee teleportee = getPendingTeleport(event.getPlayer());
+        if (teleportee == null)
+            return;
+        if (teleportee.getStartLocation().getWorld() != player.getWorld() || teleportee.getStartLocation().distanceSquared(event.getTo()) > 0.3D)
+            cancelPendingTeleport(player, true);
+    }
+
+    @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
+    public void onPlayerTeleport(PlayerTeleportEvent event)
+    {
+        cancelPendingTeleport(event.getPlayer(), false);
+    }
+
+    @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
+    public void onPlayerTakesDamage(EntityDamageEvent event)
+    {
+        if (event.getEntityType() != EntityType.PLAYER)
+            return;
+        cancelPendingTeleport((Player)event.getEntity(), true);
+    }
+}
+
+class PendingTeleportee
+{
+    private Location startLocation;
+    private int id;
+
+    public PendingTeleportee(Player player, int id)
+    {
+        this.startLocation = player.getLocation();
+        this.id = id;
+    }
+
+    Location getStartLocation()
+    {
+        return this.startLocation;
+    }
+
+    int getId()
+    {
+        return this.id;
+    }
 }
