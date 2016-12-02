@@ -14,6 +14,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -335,8 +336,9 @@ public class BetterTPA extends JavaPlugin implements Listener
         {
             public void run()
             {
-                if (pendingTeleports.containsKey(player) && pendingTeleports.remove(player).getId() == anIDThing)
+                if (pendingTeleports.containsKey(player) && pendingTeleports.get(player).getId() == anIDThing)
                 {
+                    cancelPendingTeleport(player, false);
                     player.teleport(targetLocation);
                     postTeleportPlayer(player, target);
                 }
@@ -378,6 +380,11 @@ public class BetterTPA extends JavaPlugin implements Listener
         if (event.getEntityType() != EntityType.PLAYER)
             return;
         cancelPendingTeleport((Player)event.getEntity(), true);
+    }
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onPlayerInteract(PlayerInteractEvent event)
+    {
+        cancelPendingTeleport(event.getPlayer(), true);
     }
 }
 
