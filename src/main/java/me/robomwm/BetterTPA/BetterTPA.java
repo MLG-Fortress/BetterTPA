@@ -282,11 +282,19 @@ public class BetterTPA extends JavaPlugin implements Listener
     {
         PreTPATeleportEvent event = new PreTPATeleportEvent(player, targetLocation);
 
-        //Creative check
-        if (target != null && target.getGameMode() == GameMode.CREATIVE)
+        //target checks
+        if (target != null)
         {
-            event.setReason(target.getName() + " is not able to be teleported to at this time.");
-            event.setCancelled(true);
+            if (target.isDead() || target.hasMetadata("DEAD"))
+            {
+                event.setReason(target.getName() + " iz ded rite now :( Try again in a few seconds?");
+                event.setCancelled(true);
+            }
+            else if (target.getGameMode() != GameMode.SURVIVAL || target.getGameMode() != GameMode.ADVENTURE)
+            {
+                event.setReason(target.getName() + " is not able to be teleported to at this time.");
+                event.setCancelled(true);
+            }
         }
 
         getServer().getPluginManager().callEvent(event);
