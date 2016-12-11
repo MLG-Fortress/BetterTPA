@@ -43,7 +43,7 @@ public class BetterTPA extends JavaPlugin implements Listener
     String requestTeleportSuccessMessage = ChatColor.GREEN + "U successfully teleported 2 ";
     String targetTeleportSuccessMessage = ChatColor.AQUA + " teleported 2 u";
     String teleportWarmupPermission = "bettertpa.nowarmup";
-    String rejectMessage = ChatColor.DARK_RED + "culdnt lock on 2 ur location! U must've moved or was hit! :(";
+    String rejectMessage = ChatColor.DARK_RED + "culdnt lock on 2 ur location! U gotta stay still! :(";
     Map<Player, Player> requesters = new HashMap<>();
     Set<Player> recentRequesters = new HashSet<>();
     Set<Player> tpToggled = new HashSet<>();
