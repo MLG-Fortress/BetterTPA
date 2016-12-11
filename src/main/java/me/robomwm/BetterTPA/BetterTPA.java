@@ -290,7 +290,7 @@ public class BetterTPA extends JavaPlugin implements Listener
                 event.setReason(target.getName() + " iz ded rite now :( Try again in a few seconds?");
                 event.setCancelled(true);
             }
-            else if (target.getGameMode() != GameMode.SURVIVAL || target.getGameMode() != GameMode.ADVENTURE)
+            else if (target.getGameMode() == GameMode.CREATIVE || target.getGameMode() == GameMode.SPECTATOR)
             {
                 event.setReason(target.getName() + " is not able to be teleported to at this time.");
                 event.setCancelled(true);
@@ -300,8 +300,8 @@ public class BetterTPA extends JavaPlugin implements Listener
         getServer().getPluginManager().callEvent(event);
         if (event.isCancelled())
         {
-            if (target != null && event.getReason() != null && !event.getReason().isEmpty())
-                target.sendMessage(ChatColor.RED + event.getReason());
+            if (event.getReason() != null && !event.getReason().isEmpty())
+                player.sendMessage(ChatColor.RED + event.getReason());
             return false;
         }
 
