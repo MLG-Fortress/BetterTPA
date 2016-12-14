@@ -348,15 +348,15 @@ public class BetterTPA extends JavaPlugin implements Listener
                 {
                     cancelPendingTeleport(player, false);
                     player.teleport(targetLocation);
-                    postTeleportPlayer(player, target);
+                    postTeleportPlayer(player, target, targetName);
                 }
             }
         }.runTaskLater(this, 140L);
     }
 
-    private void postTeleportPlayer(Player player, Player target)
+    private void postTeleportPlayer(Player player, Player target, String destinationName)
     {
-        player.sendMessage(requestTeleportSuccessMessage + target.getDisplayName());
+        player.sendMessage(requestTeleportSuccessMessage + destinationName);
         PostTPATeleportEvent event = new PostTPATeleportEvent(player, target, false);
         getServer().getPluginManager().callEvent(event);
     }
