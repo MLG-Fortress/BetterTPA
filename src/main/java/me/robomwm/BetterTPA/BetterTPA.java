@@ -332,7 +332,7 @@ public class BetterTPA extends JavaPlugin implements Listener
         if (!warmup)
         {
             player.teleport(targetLocation);
-            postTeleportPlayer(player, target);
+            postTeleportPlayer(player, target, targetName);
             return;
         }
 
