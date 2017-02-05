@@ -1,5 +1,6 @@
 package me.robomwm.BetterTPA;
 
+import com.sun.istack.internal.NotNull;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
@@ -20,6 +21,7 @@ import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
@@ -46,7 +48,6 @@ public class BetterTPA extends JavaPlugin implements Listener
     String rejectMessage = ChatColor.DARK_RED + "culdnt lock on 2 ur location! U gotta stay still! :(";
     Map<Player, Player> requesters = new HashMap<>();
     Set<Player> recentRequesters = new HashSet<>();
-    Set<Player> tpToggled = new HashSet<>();
     Map<Player, PendingTeleportee> pendingTeleports = new HashMap<>();
 
     Map<String, LinkedHashMap<String, Boolean>> allowedPlayers = new LinkedHashMap<>();
@@ -227,11 +228,6 @@ public class BetterTPA extends JavaPlugin implements Listener
             //Check if target has not yet allowed/blocked player
             if (allowed == null)
             {
-                if (tpToggled.contains(target))
-                {
-                    player.sendMessage(target.getDisplayName() + tpToggled);
-                    return true;
-                }
                 if (recentRequesters.contains(player))
                 {
                     player.sendMessage(ChatColor.RED + "ayy m8 slow down with ur teleport pr0posals.");
@@ -255,7 +251,7 @@ public class BetterTPA extends JavaPlugin implements Listener
             //Blocked
             if (!allowed)
             {
-                player.sendMessage(target.getDisplayName() + tpToggled);
+                player.sendMessage(target.getDisplayName() + tpToggledMessage);
                 return true;
             }
 
@@ -278,7 +274,7 @@ public class BetterTPA extends JavaPlugin implements Listener
         return false;
     }
 
-    private boolean canTeleport(Player player, Location targetLocation, Player target)
+    private boolean canTeleport(Player player, Location targetLocation, @Nullable Player target)
     {
         PreTPATeleportEvent event = new PreTPATeleportEvent(player, targetLocation);
 
@@ -324,7 +320,7 @@ public class BetterTPA extends JavaPlugin implements Listener
      * @param warmup
      * @param target target player - set to null if not teleporting to a player
      */
-    public void teleportPlayer(Player player, String targetName, final Location targetLocation, boolean warmup, Player target)
+    public void teleportPlayer(Player player, @NotNull String targetName, final Location targetLocation, boolean warmup, @Nullable Player target)
     {
         if (!canTeleport(player, targetLocation, target))
             return;
@@ -332,7 +328,7 @@ public class BetterTPA extends JavaPlugin implements Listener
         if (!warmup)
         {
             player.teleport(targetLocation);
-            postTeleportPlayer(player, target);
+            postTeleportPlayer(player, target, targetName);
             return;
         }
 
@@ -354,7 +350,7 @@ public class BetterTPA extends JavaPlugin implements Listener
         }.runTaskLater(this, 140L);
     }
 
-    private void postTeleportPlayer(Player player, Player target, String destinationName)
+    private void postTeleportPlayer(Player player, @Nullable Player target, @NotNull String destinationName)
     {
         player.sendMessage(requestTeleportSuccessMessage + destinationName);
         PostTPATeleportEvent event = new PostTPATeleportEvent(player, target, false);

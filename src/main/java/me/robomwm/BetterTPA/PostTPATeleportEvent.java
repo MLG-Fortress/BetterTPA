@@ -4,6 +4,8 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 
+import javax.annotation.Nullable;
+
 /**
  * Created by RoboMWM on 11/12/2016.
  */
@@ -23,7 +25,7 @@ public class PostTPATeleportEvent extends Event {
     private Player target;
     private boolean cancelled;
 
-    PostTPATeleportEvent(Player player, Player target, boolean cancel) //Will implement more if requested to do so
+    PostTPATeleportEvent(Player player, @Nullable Player target, boolean cancel) //Will implement more if requested to do so
     {
         this.player = player;
         this.target = target;
