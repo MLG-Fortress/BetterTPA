@@ -21,6 +21,7 @@ import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
@@ -139,8 +140,14 @@ public class BetterTPA extends JavaPlugin implements Listener
      */
     private void cancelPendingTeleport(Player player, boolean sendMessage)
     {
-        if (pendingTeleports.remove(player) != null && sendMessage)
-            player.sendMessage(rejectMessage);
+        if (pendingTeleports.remove(player) != null)
+        {
+            PostTPATeleportEvent event = new PostTPATeleportEvent(player, null, false);
+            getServer().getPluginManager().callEvent(event);
+            if (sendMessage)
+                player.sendMessage(rejectMessage);
+        }
+
     }
 
     private PendingTeleportee getPendingTeleport(Player player)
@@ -320,7 +327,7 @@ public class BetterTPA extends JavaPlugin implements Listener
      * @param warmup
      * @param target target player - set to null if not teleporting to a player
      */
-    public void teleportPlayer(Player player, @NotNull String targetName, final Location targetLocation, boolean warmup, @Nullable Player target)
+    public void teleportPlayer(Player player, @Nonnull String targetName, @Nonnull final Location targetLocation, boolean warmup, @Nullable Player target)
     {
         if (!canTeleport(player, targetLocation, target))
             return;
@@ -334,7 +341,13 @@ public class BetterTPA extends JavaPlugin implements Listener
 
         player.sendMessage(ChatColor.GOLD + "0k pls standby while we beem u 2 " + targetName);
         int anIDThing = ThreadLocalRandom.current().nextInt();
-        pendingTeleports.put(player, new PendingTeleportee(player, anIDThing));
+        new BukkitRunnable()
+        {
+            public void run()
+            {
+                pendingTeleports.put(player, new PendingTeleportee(player, anIDThing));
+            }
+        }.runTask(this); //1 tick delay in case of right clicking a sign for example
 
         new BukkitRunnable()
         {
