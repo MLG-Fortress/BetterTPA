@@ -1,6 +1,5 @@
 package me.robomwm.BetterTPA;
 
-import com.sun.istack.internal.NotNull;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
@@ -363,7 +362,7 @@ public class BetterTPA extends JavaPlugin implements Listener
         }.runTaskLater(this, 140L);
     }
 
-    private void postTeleportPlayer(Player player, @Nullable Player target, @NotNull String destinationName)
+    private void postTeleportPlayer(Player player, @Nullable Player target, @Nonnull String destinationName)
     {
         player.sendMessage(requestTeleportSuccessMessage + destinationName);
         PostTPATeleportEvent event = new PostTPATeleportEvent(player, target, false);
