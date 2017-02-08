@@ -131,24 +131,6 @@ public class BetterTPA extends JavaPlugin implements Listener
         return result;
     }
 
-    /**
-     * Cancels an existing teleport task
-     * Used for "warmup cancelers" in event handlers or when making a new request during a warmup stage
-     * Private for now, as I don't see a use to make public
-     * @param player
-     */
-    private void cancelPendingTeleport(Player player, boolean sendMessage)
-    {
-        if (pendingTeleports.remove(player) != null)
-        {
-            PostTPATeleportEvent event = new PostTPATeleportEvent(player, null, false);
-            getServer().getPluginManager().callEvent(event);
-            if (sendMessage)
-                player.sendMessage(rejectMessage);
-        }
-
-    }
-
     private PendingTeleportee getPendingTeleport(Player player)
     {
         return pendingTeleports.get(player);
@@ -354,24 +336,43 @@ public class BetterTPA extends JavaPlugin implements Listener
             {
                 if (pendingTeleports.containsKey(player) && pendingTeleports.get(player).getId() == anIDThing)
                 {
-                    cancelPendingTeleport(player, false);
-                    player.teleport(targetLocation);
                     postTeleportPlayer(player, target, targetName);
+                    player.teleport(targetLocation);
                 }
             }
-        }.runTaskLater(this, 140L);
+        }.runTaskLater(this, 120L);
     }
 
     private void postTeleportPlayer(Player player, @Nullable Player target, @Nonnull String destinationName)
     {
+        pendingTeleports.remove(player);
         player.sendMessage(requestTeleportSuccessMessage + destinationName);
         PostTPATeleportEvent event = new PostTPATeleportEvent(player, target, false);
         getServer().getPluginManager().callEvent(event);
     }
 
     /**
+     * Cancels an existing teleport task
+     * Used for "warmup cancelers" in event handlers or when making a new request during a warmup stage
+     * Private for now, as I don't see a use to make public
+     * @param player
+     */
+    private void cancelPendingTeleport(@Nonnull Player player, boolean sendMessage)
+    {
+        if (pendingTeleports.remove(player) != null)
+        {
+            PostTPATeleportEvent event = new PostTPATeleportEvent(player, null, false);
+            getServer().getPluginManager().callEvent(event);
+            if (sendMessage)
+                player.sendMessage(rejectMessage);
+        }
+    }
+
+    /**
      * Events to handle canceling pending teleport
      */
+
+
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
     public void onPlayerMove(PlayerMoveEvent event)
