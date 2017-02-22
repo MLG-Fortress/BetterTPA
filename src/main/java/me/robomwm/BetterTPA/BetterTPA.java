@@ -49,7 +49,7 @@ public class BetterTPA extends JavaPlugin implements Listener
     public void onEnable()
     {
         getServer().getPluginManager().registerEvents(this, this);
-        saveConfig();
+        config = new Config(this);
         //I use .data extension cuz reasons that have to do with how I automatically manage .yml files on my server so yea...
         //Not like they're supposed to touch this file anyways.
         File storageFile = new File(getDataFolder(), "storage.data");

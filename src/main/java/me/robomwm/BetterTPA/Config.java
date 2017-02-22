@@ -38,6 +38,9 @@ public class Config
         config.addDefault("invalidPlayerMessage", "&cDoesn't look like &f{0} &cis online or a valid name.");
         config.addDefault("tpaSpam", "&cayy m8 slow down with ur teleport pr0posals.");
         config.addDefault("tpNotAllowed", "&c{0} is not able to be teleported to at this time.");
+
+        config.options().copyDefaults(true);
+        instance.saveConfig();
     }
 
     public void send(Player player, String message)
