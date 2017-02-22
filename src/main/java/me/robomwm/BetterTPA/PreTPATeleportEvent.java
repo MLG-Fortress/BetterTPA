@@ -5,6 +5,8 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 
+import javax.annotation.Nullable;
+
 /**
  * Created by RoboMWM on 11/12/2016.
  */
@@ -21,14 +23,16 @@ public class PreTPATeleportEvent extends Event {
 
 
     private Player player;
+    private Player target;
     private boolean cancelled = false;
     private Location targetLocation;
     String reason = null;
 
-    PreTPATeleportEvent(Player player, Location targetLocation) //Will implement more if requested to do so
+    PreTPATeleportEvent(Player player, Location targetLocation, @Nullable Player target) //Will implement more if requested to do so
     {
         this.player = player;
         this.targetLocation = targetLocation;
+        this.target = target;
     }
 
     public Location getTargetLocation()
@@ -64,5 +68,10 @@ public class PreTPATeleportEvent extends Event {
     public String getReason()
     {
         return this.reason;
+    }
+
+    public Player getTarget()
+    {
+        return target;
     }
 }

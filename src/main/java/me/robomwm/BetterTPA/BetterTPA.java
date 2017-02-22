@@ -2,8 +2,8 @@ package me.robomwm.BetterTPA;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
-import org.bukkit.GameMode;
 import org.bukkit.Location;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.ConfigurationSection;
@@ -29,6 +29,7 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 
 /**
@@ -37,19 +38,11 @@ import java.util.concurrent.ThreadLocalRandom;
 public class BetterTPA extends JavaPlugin implements Listener
 {
     YamlConfiguration storage;
-    ConfigurationSection allowedPlayersSection;
-    String blockedMessage = ChatColor.DARK_GREEN + " will no longer be able to send teleport requests 2 u. Use" +
-            ChatColor.GOLD + " /tpremove" + ChatColor.DARK_GREEN + " to undo dis if dis wuz mistake.";
-    String removeMessage = ChatColor.DARK_GREEN + " was removed from ur /tpallow. FYI, u can view ur /tplist";
-    String tpToggledMessage = ChatColor.RED + " is currently n0t in da m00d 2 receive teleport pr0posals. Try l8r, mebee?";
-    String requestTeleportSuccessMessage = ChatColor.GREEN + "U successfully teleported 2 ";
-    String targetTeleportSuccessMessage = ChatColor.AQUA + " teleported 2 u";
-    String teleportWarmupPermission = "bettertpa.nowarmup";
-    String rejectMessage = ChatColor.DARK_RED + "culdnt lock on 2 ur location! U gotta stay still! :(";
+    Config config;
+
     Map<Player, Player> requesters = new HashMap<>();
     Set<Player> recentRequesters = new HashSet<>();
     Map<Player, PendingTeleportee> pendingTeleports = new HashMap<>();
-
     Map<String, LinkedHashMap<String, Boolean>> allowedPlayers = new LinkedHashMap<>();
 
     @Override
@@ -69,7 +62,7 @@ public class BetterTPA extends JavaPlugin implements Listener
             }
             catch (IOException e)
             {
-                this.getLogger().severe("Could not create storage.yml! Since I'm lazy, there currently is no \"in memory\" option. Will now disable along with a nice stack trace for you to bother me with:");
+                this.getLogger().severe("Could not create storage.data! Since I'm lazy, there currently is no \"in memory\" option. Will now disable along with a nice stack trace for you to bother me with:");
                 e.printStackTrace();
                 getServer().getPluginManager().disablePlugin(this);
             }
@@ -77,12 +70,9 @@ public class BetterTPA extends JavaPlugin implements Listener
         else
             storage = YamlConfiguration.loadConfiguration(storageFile);
 
-        //Create appropriate configurationsections, if they don't exist
-        if (storage.getConfigurationSection("allowedPlayers") == null)
-            storage.set("allowedPlayers", new LinkedHashMap<String, String>());
+        ConfigurationSection allowedPlayersSection = storage.getConfigurationSection("allowedPlayers");
 
         //Set variables/shortcuts
-        allowedPlayersSection = storage.getConfigurationSection("allowedPlayers");
         if (allowedPlayersSection == null)
             return;
         for (String uuid : allowedPlayersSection.getKeys(false))
@@ -113,9 +103,8 @@ public class BetterTPA extends JavaPlugin implements Listener
 
     /**
      * Check a player's /tpacceptance status or w/e
-     * @param returnNullIfNotSpecified if true, will return null if target is not allowed nor blocked. Otherwise, will return false for this case
      */
-    private Boolean isAllowed(String playerUUID, String targetUUID, boolean returnNullIfNotSpecified)
+    private Boolean isAllowed(String playerUUID, String targetUUID)
     {
         Boolean result;
         //Check if target has allowed anyone
@@ -123,11 +112,6 @@ public class BetterTPA extends JavaPlugin implements Listener
             result = null;
         else
             result = allowedPlayers.get(targetUUID).get(playerUUID);
-
-        //Return false instead of null if we should not return null
-        if (result == null && !returnNullIfNotSpecified)
-            return false;
-
         return result;
     }
 
@@ -168,9 +152,31 @@ public class BetterTPA extends JavaPlugin implements Listener
 
         if (cmd.getName().equalsIgnoreCase("tplist"))
         {
-            //TODO: implement tplist
-            return false;
+            StringBuilder allowed = new StringBuilder(config.getTplistMessage(true) + "  ");
+            StringBuilder blocked = new StringBuilder(config.getTplistMessage(false) + "  ");
+            //Only build list if player allowed/blocked anyone
+            if (allowedPlayers.containsKey(playerUUID))
+            {
+                LinkedHashMap<String, Boolean> list = allowedPlayers.get(playerUUID);
+                for (String targetUUID : list.keySet())
+                {
+                    OfflinePlayer offlinePlayer = getServer().getOfflinePlayer(UUID.fromString(targetUUID));
+                    if (offlinePlayer.getName() == null || offlinePlayer.getName().isEmpty())
+                        continue;
+                    if (list.get(targetUUID) == null)
+                        continue;
+                    if (list.get(targetUUID))
+                        allowed.append(offlinePlayer.getName() + ", ");
+                    else
+                        blocked.append(offlinePlayer.getName() + ", ");
+                }
+            }
+            player.sendMessage(allowed.substring(0, allowed.length() - 2));
+            player.sendMessage(blocked.substring(0, blocked.length() - 2));
+            return true;
         }
+
+        /*Commands requiring 1 argument*/
 
         if (args.length < 1)
             return false;
@@ -182,7 +188,7 @@ public class BetterTPA extends JavaPlugin implements Listener
         //Check if target is invalid or invisible player
         if (target == null || !player.canSee(target))
         {
-            player.sendMessage(ChatColor.RED + "Doesn't look like " + ChatColor.AQUA + args[0] + ChatColor.RED + " is online or a valid name.");
+            config.send(player, config.getInvalidPlayerMessage(args[0]));
             return true;
         }
 
@@ -191,40 +197,40 @@ public class BetterTPA extends JavaPlugin implements Listener
         //Requesting to tp/accept urself? pls
         if (target == player)
         {
-            player.sendMessage(ChatColor.RED + "kek");
+            config.send(player, config.getTpToSelf());
             return true;
         }
 
         if (cmd.getName().equalsIgnoreCase("tpblock"))
         {
             setAllowed(playerUUID, targetUUID, false);
-            player.sendMessage(target.getDisplayName() + blockedMessage);
+            config.send(player, config.getBlockingMessage(target.getName()));
             return true;
         }
 
         if (cmd.getName().equalsIgnoreCase("tpremove"))
         {
             setAllowed(playerUUID, targetUUID, null);
-            player.sendMessage(target.getDisplayName() + removeMessage);
+            config.send(player, config.getRemovingMessage(target.getName()));
             return true;
         }
 
         if (cmd.getName().equalsIgnoreCase("tpa"))
         {
-            Boolean allowed = isAllowed(playerUUID, targetUUID, true);
+            Boolean allowed = isAllowed(playerUUID, targetUUID);
 
             //Check if target has not yet allowed/blocked player
             if (allowed == null)
             {
                 if (recentRequesters.contains(player))
                 {
-                    player.sendMessage(ChatColor.RED + "ayy m8 slow down with ur teleport pr0posals.");
+                    config.send(player, config.getSpam());
                     return true;
                 }
-                player.sendMessage(ChatColor.AQUA + "0k, but 1st, " + target.getDisplayName() + ChatColor.AQUA + " n33ds 2 accept ur teleport proposal.");
-                target.sendMessage(player.getDisplayName() + ChatColor.AQUA + " w0ts 2 tp 2 u." +
-                        "\nU can: " + ChatColor.GOLD + "/tpallow " + player.getName() + ChatColor.AQUA + " or " + ChatColor.GOLD + "/tpblock " + player.getName());
+                config.send(player, config.getRequestingMessage(true, target.getDisplayName()));
+                config.send(target, config.getRequestingMessage(false, player.getName()));
                 requesters.put(player, target);
+                //command cooldown
                 recentRequesters.add(player);
                 new BukkitRunnable()
                 {
@@ -239,7 +245,7 @@ public class BetterTPA extends JavaPlugin implements Listener
             //Blocked
             if (!allowed)
             {
-                player.sendMessage(target.getDisplayName() + tpToggledMessage);
+                config.send(player, config.getTpNotAllowed(target.getDisplayName()));
                 return true;
             }
 
@@ -252,10 +258,9 @@ public class BetterTPA extends JavaPlugin implements Listener
         else if (cmd.getName().equalsIgnoreCase("tpallow"))
         {
             setAllowed(playerUUID, targetUUID, true);
-            player.sendMessage(ChatColor.GREEN + "U allowed " +  ChatColor.AQUA + target.getName() + ChatColor.GREEN + " 2 teleport 2 you.");
-            player.sendMessage(ChatColor.GREEN + "If u regret ur decision, u can " + ChatColor.GOLD + "/tpremove " + target.getName());
+            config.send(player, config.getAllowingMessage(target.getName()));
             if (requesters.containsKey(target) && requesters.remove(target) == player)
-                target.sendMessage(player.getDisplayName() + ChatColor.GREEN + " has accepted ur teleport pr0posal.\nU may now /tp " + player.getName());
+                config.send(target, config.getRequestAcceptedMessage(player.getName()));
             return true;
         }
         //Not enough arguments
@@ -264,24 +269,17 @@ public class BetterTPA extends JavaPlugin implements Listener
 
     private boolean canTeleport(Player player, Location targetLocation, @Nullable Player target)
     {
-        PreTPATeleportEvent event = new PreTPATeleportEvent(player, targetLocation);
-
-        //target checks
+        PreTPATeleportEvent event = new PreTPATeleportEvent(player, targetLocation, target);
+        getServer().getPluginManager().callEvent(event);
+        //Permission check
         if (target != null)
         {
-            if (target.isDead() || target.hasMetadata("DEAD"))
+            if (!target.hasPermission("bettertpa.receiveteleports"))
             {
-                event.setReason(target.getName() + " iz ded rite now :( Try again in a few seconds?");
                 event.setCancelled(true);
-            }
-            else if (target.getGameMode() == GameMode.CREATIVE || target.getGameMode() == GameMode.SPECTATOR)
-            {
-                event.setReason(target.getName() + " is not able to be teleported to at this time.");
-                event.setCancelled(true);
+                config.send(player, config.getTpNotAllowed(target.getDisplayName()));
             }
         }
-
-        getServer().getPluginManager().callEvent(event);
         if (event.isCancelled())
         {
             if (event.getReason() != null && !event.getReason().isEmpty())
@@ -292,12 +290,11 @@ public class BetterTPA extends JavaPlugin implements Listener
         return true;
     }
 
+    //Used internally, primarily for warmups, permission checks, etc.
     private void preTeleportPlayer(Player player, Player target)
     {
-        boolean applyWarmup = true;
-        if (player.hasPermission(teleportWarmupPermission) && target.hasPermission(teleportWarmupPermission))
-            applyWarmup = false;
-        teleportPlayer(player, target.getDisplayName(), target.getLocation(), applyWarmup, target);
+        boolean canBypassWarmup = (config.hasNoWarmupOverride(player) || config.haveNoWarmup(player, target));
+        teleportPlayer(player, target.getDisplayName(), target.getLocation(), !canBypassWarmup, target);
     }
 
     /**
@@ -313,12 +310,16 @@ public class BetterTPA extends JavaPlugin implements Listener
         if (!canTeleport(player, targetLocation, target))
             return;
 
+        //No warmup, no problem
         if (!warmup)
         {
-            player.teleport(targetLocation);
             postTeleportPlayer(player, target, targetName);
+            player.teleport(targetLocation);
             return;
         }
+
+        //Silently cancel any existing teleports
+        cancelPendingTeleport(player, false);
 
         player.sendMessage(ChatColor.GOLD + "0k pls standby while we beem u 2 " + targetName);
         int anIDThing = ThreadLocalRandom.current().nextInt();
@@ -346,9 +347,10 @@ public class BetterTPA extends JavaPlugin implements Listener
     private void postTeleportPlayer(Player player, @Nullable Player target, @Nonnull String destinationName)
     {
         pendingTeleports.remove(player);
-        player.sendMessage(requestTeleportSuccessMessage + destinationName);
+        config.send(player, config.getTeleportSuccess(destinationName));
         PostTPATeleportEvent event = new PostTPATeleportEvent(player, target, false);
         getServer().getPluginManager().callEvent(event);
+        //TODO: send message???
     }
 
     /**
@@ -361,18 +363,15 @@ public class BetterTPA extends JavaPlugin implements Listener
     {
         if (pendingTeleports.remove(player) != null)
         {
-            PostTPATeleportEvent event = new PostTPATeleportEvent(player, null, false);
-            getServer().getPluginManager().callEvent(event);
+            getServer().getPluginManager().callEvent(new PostTPATeleportEvent(player, null, false));
             if (sendMessage)
-                player.sendMessage(rejectMessage);
+                config.send(player, config.getTeleportReject());
         }
     }
 
-    /**
+    /*
      * Events to handle canceling pending teleport
      */
-
-
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
     public void onPlayerMove(PlayerMoveEvent event)
