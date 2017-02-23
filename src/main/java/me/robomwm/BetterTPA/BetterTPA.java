@@ -16,6 +16,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -374,7 +375,7 @@ public class BetterTPA extends JavaPlugin implements Listener
      */
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
-    public void onPlayerMove(PlayerMoveEvent event)
+    void onPlayerMove(PlayerMoveEvent event)
     {
         Player player = event.getPlayer();
         PendingTeleportee teleportee = getPendingTeleport(event.getPlayer());
@@ -385,22 +386,28 @@ public class BetterTPA extends JavaPlugin implements Listener
     }
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
-    public void onPlayerTeleport(PlayerTeleportEvent event)
+    void onPlayerTeleport(PlayerTeleportEvent event)
     {
         cancelPendingTeleport(event.getPlayer(), false);
     }
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
-    public void onPlayerTakesDamage(EntityDamageEvent event)
+    void onPlayerTakesDamage(EntityDamageEvent event)
     {
         if (event.getEntityType() != EntityType.PLAYER)
             return;
         cancelPendingTeleport((Player)event.getEntity(), true);
     }
     @EventHandler(priority = EventPriority.MONITOR)
-    public void onPlayerInteract(PlayerInteractEvent event)
+    void onPlayerInteract(PlayerInteractEvent event)
     {
         cancelPendingTeleport(event.getPlayer(), true);
+    }
+
+    @EventHandler(priority = EventPriority.LOWEST)
+    void onPlayerQuit(PlayerQuitEvent event)
+    {
+        cancelPendingTeleport(event.getPlayer(), false);
     }
 }
 
