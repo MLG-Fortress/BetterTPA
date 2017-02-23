@@ -307,19 +307,19 @@ public class BetterTPA extends JavaPlugin implements Listener
      */
     public void teleportPlayer(Player player, @Nonnull String targetName, @Nonnull final Location targetLocation, boolean warmup, @Nullable Player target)
     {
+        //Silently cancel any existing teleports
+        cancelPendingTeleport(player, false);
+
         if (!canTeleport(player, targetLocation, target))
             return;
 
         //No warmup, no problem
         if (!warmup)
         {
-            postTeleportPlayer(player, target, targetName);
+            postTeleportPlayer(player, target, targetName, targetLocation);
             player.teleport(targetLocation);
             return;
         }
-
-        //Silently cancel any existing teleports
-        cancelPendingTeleport(player, false);
 
         player.sendMessage(ChatColor.GOLD + "0k pls standby while we beem u 2 " + targetName);
         int anIDThing = ThreadLocalRandom.current().nextInt();
@@ -337,17 +337,17 @@ public class BetterTPA extends JavaPlugin implements Listener
             {
                 if (pendingTeleports.containsKey(player) && pendingTeleports.get(player).getId() == anIDThing)
                 {
-                    postTeleportPlayer(player, target, targetName);
-                    player.teleport(targetLocation);
+                    postTeleportPlayer(player, target, targetName, targetLocation);
                 }
             }
         }.runTaskLater(this, 120L);
     }
 
-    private void postTeleportPlayer(Player player, @Nullable Player target, @Nonnull String destinationName)
+    private void postTeleportPlayer(Player player, @Nullable Player target, @Nonnull String destinationName, Location targetLocation)
     {
         pendingTeleports.remove(player);
         config.send(player, config.getTeleportSuccess(destinationName));
+        player.teleport(targetLocation);
         PostTPATeleportEvent event = new PostTPATeleportEvent(player, target, false);
         getServer().getPluginManager().callEvent(event);
         //TODO: send message???
@@ -363,7 +363,7 @@ public class BetterTPA extends JavaPlugin implements Listener
     {
         if (pendingTeleports.remove(player) != null)
         {
-            getServer().getPluginManager().callEvent(new PostTPATeleportEvent(player, null, false));
+            getServer().getPluginManager().callEvent(new PostTPATeleportEvent(player, null, true));
             if (sendMessage)
                 config.send(player, config.getTeleportReject());
         }
