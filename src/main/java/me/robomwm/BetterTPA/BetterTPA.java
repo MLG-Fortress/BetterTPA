@@ -66,6 +66,7 @@ public class BetterTPA extends JavaPlugin implements Listener
                 this.getLogger().severe("Could not create storage.data! Since I'm lazy, there currently is no \"in memory\" option. Will now disable along with a nice stack trace for you to bother me with:");
                 e.printStackTrace();
                 getServer().getPluginManager().disablePlugin(this);
+                return;
             }
         }
         else

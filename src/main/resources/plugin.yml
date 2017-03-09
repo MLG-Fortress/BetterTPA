@@ -29,6 +29,9 @@ permissions:
     bettertpa.nowarmup.override:
         description: Bypass warmup in all situations
         default: op
+    bettertpa.tpa:
+        description: Allows players to /tpa.
+        default: op
     bettertpa.receiveteleports:
         description: Allows players to /tpa to this person. Useful if you want to limit access to some worlds.
-        default: true
+        default: false
