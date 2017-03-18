@@ -273,7 +273,7 @@ public class BetterTPA extends JavaPlugin implements Listener
     {
         long warmupTime = 0L;
         if (warmup)
-            warmupTime = 120L; //TODO: config
+            warmupTime = 140L; //TODO: config
         PreTPATeleportEvent event = new PreTPATeleportEvent(player, targetLocation, target, warmupTime);
         getServer().getPluginManager().callEvent(event);
         //Permission check
