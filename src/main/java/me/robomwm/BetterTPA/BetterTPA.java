@@ -269,9 +269,12 @@ public class BetterTPA extends JavaPlugin implements Listener
         return false;
     }
 
-    private boolean canTeleport(Player player, Location targetLocation, @Nullable Player target)
+    private long canTeleport(Player player, Location targetLocation, @Nullable Player target, boolean warmup)
     {
-        PreTPATeleportEvent event = new PreTPATeleportEvent(player, targetLocation, target);
+        long warmupTime = 0L;
+        if (warmup)
+            warmupTime = 120L; //TODO: config
+        PreTPATeleportEvent event = new PreTPATeleportEvent(player, targetLocation, target, warmupTime);
         getServer().getPluginManager().callEvent(event);
         //Permission check
         if (target != null)
@@ -286,10 +289,10 @@ public class BetterTPA extends JavaPlugin implements Listener
         {
             if (event.getReason() != null && !event.getReason().isEmpty())
                 player.sendMessage(ChatColor.RED + event.getReason());
-            return false;
+            return -1L;
         }
 
-        return true;
+        return event.getWarmup();
     }
 
     //Used internally, primarily for warmups, permission checks, etc.
@@ -312,11 +315,12 @@ public class BetterTPA extends JavaPlugin implements Listener
         //Silently cancel any existing teleports
         cancelPendingTeleport(player, false);
 
-        if (!canTeleport(player, targetLocation, target))
+        long warmupTime = canTeleport(player, targetLocation, target, warmup);
+        if (warmupTime < 0L)
             return;
 
         //No warmup, no problem
-        if (!warmup)
+        if (warmupTime == 0L)
         {
             postTeleportPlayer(player, target, targetName, targetLocation);
             player.teleport(targetLocation);
@@ -342,7 +346,7 @@ public class BetterTPA extends JavaPlugin implements Listener
                     postTeleportPlayer(player, target, targetName, targetLocation);
                 }
             }
-        }.runTaskLater(this, 120L);
+        }.runTaskLater(this, warmupTime);
     }
 
     private void postTeleportPlayer(Player player, @Nullable Player target, @Nonnull String destinationName, Location targetLocation)

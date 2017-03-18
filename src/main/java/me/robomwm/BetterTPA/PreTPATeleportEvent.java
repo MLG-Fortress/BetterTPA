@@ -5,6 +5,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 /**
@@ -26,13 +27,15 @@ public class PreTPATeleportEvent extends Event {
     private Player target;
     private boolean cancelled = false;
     private Location targetLocation;
-    String reason = null;
+    private long warmup;
+    private String reason = null;
 
-    PreTPATeleportEvent(Player player, Location targetLocation, @Nullable Player target) //Will implement more if requested to do so
+    PreTPATeleportEvent(Player player, Location targetLocation, @Nullable Player target, @Nonnull long warmup) //Will implement more if requested to do so
     {
         this.player = player;
         this.targetLocation = targetLocation;
         this.target = target;
+        this.warmup = warmup;
     }
 
     public Location getTargetLocation()
@@ -73,5 +76,17 @@ public class PreTPATeleportEvent extends Event {
     public Player getTarget()
     {
         return target;
+    }
+
+    public long getWarmup()
+    {
+        return warmup;
+    }
+
+    public void setWarmup(long warmup)
+    {
+        if (warmup < 0L)
+            setCancelled(true);
+        this.warmup = warmup;
     }
 }
