@@ -252,7 +252,6 @@ public class BetterTPA extends JavaPlugin implements Listener
             }
 
             //Allowed
-            cancelPendingTeleport(player, false);
             preTeleportPlayer(player, target);
             return true;
         }
@@ -393,6 +392,9 @@ public class BetterTPA extends JavaPlugin implements Listener
     @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
     void onPlayerTeleport(PlayerTeleportEvent event)
     {
+        //Ignore teleports due to Minecraft's wonderful move correction. https://gist.github.com/RoboMWM/dd38528ca995674538a43405c035892f
+        if (event.getCause() == PlayerTeleportEvent.TeleportCause.UNKNOWN && event.getFrom().getWorld() == event.getTo().getWorld())
+            return;
         cancelPendingTeleport(event.getPlayer(), false);
     }
 
