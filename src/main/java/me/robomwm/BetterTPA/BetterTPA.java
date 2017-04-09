@@ -274,7 +274,6 @@ public class BetterTPA extends JavaPlugin implements Listener
         if (warmup)
             warmupTime = 140L; //TODO: config
         PreTPATeleportEvent event = new PreTPATeleportEvent(player, targetLocation, target, warmupTime);
-        getServer().getPluginManager().callEvent(event);
         //Permission check
         if (target != null)
         {
@@ -290,6 +289,7 @@ public class BetterTPA extends JavaPlugin implements Listener
                 player.sendMessage(ChatColor.RED + event.getReason());
             return -1L;
         }
+        getServer().getPluginManager().callEvent(event);
 
         return event.getWarmup();
     }

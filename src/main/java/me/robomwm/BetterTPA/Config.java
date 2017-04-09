@@ -23,9 +23,9 @@ public class Config
 
         config.addDefault("blockingMessage", "{0} &2will no longer be able to send teleport requests 2 u." +
                                                         "\nUse &6 /tpremove &2to undo dis if dis wuz mistake.");
-        config.addDefault("allowingMessage", "&aU allowed &f{0} 2 teleport 2 you." +
+        config.addDefault("allowingMessage", "&aU allowed &f{0} &a2 teleport 2 you." +
                                                         "\nIf u regret ur decision, u can &6/tpremove {0}");
-        config.addDefault("requestingMessage", "&b0k, but 1st, {0} n33ds 2 accept ur teleport proposal.");
+        config.addDefault("requestingMessage", "&b0k, but 1st, {0} &bn33ds 2 accept ur teleport proposal.");
         config.addDefault("requestMessage", "{0} &bw0ts 2 tp 2 u." +
                 "\nU can: &6/tpallow {0} &bor &6/tpblock {0}");
         config.addDefault("requestAcceptedMessage", "&a{0} has accepted ur teleport pr0posal.\nU may now &6/tpa {0}");
@@ -37,7 +37,7 @@ public class Config
         config.addDefault("tplistBlockedMessage", "Players in /tpblock:");
         config.addDefault("invalidPlayerMessage", "&cDoesn't look like &f{0} &cis online or a valid name.");
         config.addDefault("tpaSpam", "&cayy m8 slow down with ur teleport pr0posals.");
-        config.addDefault("tpNotAllowed", "&c{0} is not able to be teleported to at this time.");
+        config.addDefault("tpNotAllowed", "&c{0} &cis not able to be teleported to at this time.");
 
         config.options().copyDefaults(true);
         instance.saveConfig();
@@ -80,7 +80,7 @@ public class Config
 
     public String getTpNotAllowed(String name)
     {
-        return formatter(get("tpNotallowed"), name);
+        return formatter(get("tpNotAllowed"), name);
     }
 
     public String getTpToSelf()
