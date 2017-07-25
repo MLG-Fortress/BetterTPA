@@ -35,9 +35,14 @@ public class Config
         config.addDefault("tpToSelfMessage", "&ckek");
         config.addDefault("tplistAllowedMessage", "Players in /tpallow:");
         config.addDefault("tplistBlockedMessage", "Players in /tpblock:");
-        config.addDefault("invalidPlayerMessage", "&cDoesn't look like &f{0} &cis online or a valid name.");
+        config.addDefault("invalidPlayerMessage", "&f{0} &cis not online or a valid name.");
         config.addDefault("tpaSpam", "&cayy m8 slow down with ur teleport pr0posals.");
         config.addDefault("tpNotAllowed", "&c{0} &cis not able to be teleported to at this time.");
+        config.addDefault("tphelp", "&6/tpa <player> &f- Teleports u to dat player" +
+                "\n/tpaccept <player> &f- Allows dat player to teleport to u." +
+                "\n/tpblock <player> &f- Stops dat player from asking to teleport to u." +
+                "\n/tplist &f- Shows u who u allowed and blocked." +
+                "\n/tpremove <player> &f- Removes a player from your allowed or blocked list.");
 
         config.options().copyDefaults(true);
         instance.saveConfig();
@@ -50,7 +55,15 @@ public class Config
         player.sendMessage(message);
     }
 
+    public String getWhatever(String key, Object... args)
+    {
+        if (args.length <= 0)
+            return formatter(get(key));
+        return formatter(get(key), args);
+    }
+
     //Language getters
+    //This was a mistake
 
     public String getTeleportReject()
     {

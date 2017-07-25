@@ -264,6 +264,11 @@ public class BetterTPA extends JavaPlugin implements Listener
                 config.send(target, config.getRequestAcceptedMessage(player.getName()));
             return true;
         }
+
+        else if (cmd.getName().equalsIgnoreCase("tphelp"))
+        {
+            config.send(player, config.getWhatever("tphelp"));
+        }
         //Not enough arguments
         return false;
     }

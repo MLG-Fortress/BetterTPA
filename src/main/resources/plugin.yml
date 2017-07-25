@@ -17,6 +17,7 @@ commands:
     tplist:
       usage: Shows who you allowed or blocked
       aliases: [tpalist]
+    tphelp: {}
 permissions:
     bettertpa.*:
         description: Why
