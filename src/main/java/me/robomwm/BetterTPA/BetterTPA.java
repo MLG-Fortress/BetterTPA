@@ -357,8 +357,8 @@ public class BetterTPA extends JavaPlugin implements Listener
     private void postTeleportPlayer(Player player, @Nullable Player target, @Nonnull String destinationName, Location targetLocation)
     {
         pendingTeleports.remove(player);
-        config.send(player, config.getTeleportSuccess(destinationName));
         player.teleport(targetLocation);
+        config.send(player, config.getTeleportSuccess(destinationName));
         PostTPATeleportEvent event = new PostTPATeleportEvent(player, target, false);
         getServer().getPluginManager().callEvent(event);
         //TODO: send message???
