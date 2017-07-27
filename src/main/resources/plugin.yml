@@ -3,6 +3,7 @@ author: RoboMWM
 version: ${project.version}
 main: me.robomwm.BetterTPA.BetterTPA
 commands:
+    tphelp: {}
     tpblock:
       usage: /tpblock <player> - Blocks a player from sending you teleport requests.
       aliases: [tpablock, tpban, tpaban, tpdeny, tpadeny]
@@ -17,7 +18,6 @@ commands:
     tplist:
       usage: Shows who you allowed or blocked
       aliases: [tpalist]
-    tphelp: {}
 permissions:
     bettertpa.*:
         description: Why

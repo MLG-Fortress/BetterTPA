@@ -288,13 +288,15 @@ public class BetterTPA extends JavaPlugin implements Listener
                 config.send(player, config.getTpNotAllowed(target.getDisplayName()));
             }
         }
+
+        getServer().getPluginManager().callEvent(event);
+
         if (event.isCancelled())
         {
             if (event.getReason() != null && !event.getReason().isEmpty())
                 player.sendMessage(ChatColor.RED + event.getReason());
             return -1L;
         }
-        getServer().getPluginManager().callEvent(event);
 
         return event.getWarmup();
     }
@@ -327,7 +329,6 @@ public class BetterTPA extends JavaPlugin implements Listener
         if (warmupTime == 0L)
         {
             postTeleportPlayer(player, target, targetName, targetLocation);
-            player.teleport(targetLocation);
             return;
         }
 
