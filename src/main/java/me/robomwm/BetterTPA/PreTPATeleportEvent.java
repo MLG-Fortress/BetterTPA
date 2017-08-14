@@ -2,6 +2,7 @@ package me.robomwm.BetterTPA;
 
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
+import org.bukkit.event.Cancellable;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 
@@ -11,7 +12,8 @@ import javax.annotation.Nullable;
 /**
  * Created by RoboMWM on 11/12/2016.
  */
-public class PreTPATeleportEvent extends Event {
+public class PreTPATeleportEvent extends Event implements Cancellable
+{
     // Custom Event Requirements
     private static final HandlerList handlers = new HandlerList();
     public HandlerList getHandlers() {

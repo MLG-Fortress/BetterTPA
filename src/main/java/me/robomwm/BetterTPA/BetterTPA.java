@@ -284,8 +284,8 @@ public class BetterTPA extends JavaPlugin implements Listener
         {
             if (!target.hasPermission("bettertpa.receiveteleports"))
             {
-                event.setCancelled(true);
                 config.send(player, config.getTpNotAllowed(target.getDisplayName()));
+                return -1L;
             }
         }
 
