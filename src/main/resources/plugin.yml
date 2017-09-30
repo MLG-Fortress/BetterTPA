@@ -11,10 +11,10 @@ commands:
       usage: /tpallow <player> - Allows a player to teleport to you.
       aliases: [tpyes, tpayes, tpaccept]
     tpa:
-      usage: /tpa <player> - Teleports u 2 dat player. Sends a teleport proposal if it is ur 1st time.
+      usage: /tpa <player> - Teleports u 2 dat player. Also see /tpremove, /tpallow, /tpblock
       aliases: [tpask]
     tpremove:
-      usage: /tpremove <player> - Removes a player from ur /tpallow list.
+      usage: /tpremove <player> - Removes a player from ur /tplist.
     tplist:
       usage: Shows who you allowed or blocked
       aliases: [tpalist]
