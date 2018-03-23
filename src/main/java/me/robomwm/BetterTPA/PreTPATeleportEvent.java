@@ -42,7 +42,7 @@ public class PreTPATeleportEvent extends Event implements Cancellable
 
     public Location getTargetLocation()
     {
-        return this.getTargetLocation();
+        return this.targetLocation;
     }
 
     public void setCancelled(boolean cancel)
