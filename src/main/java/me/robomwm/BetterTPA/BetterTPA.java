@@ -181,7 +181,11 @@ public class BetterTPA extends JavaPlugin implements Listener
         /*Commands requiring 1 argument*/
 
         if (args.length < 1)
+        {
+            if (cmd.getName().equalsIgnoreCase("tpa"))
+                config.send(player, config.getWhatever("tphelp"));
             return false;
+        }
 
         Player target = Bukkit.getPlayerExact(args[0]);
         if (target == null)
@@ -265,19 +269,12 @@ public class BetterTPA extends JavaPlugin implements Listener
             return true;
         }
 
-        else if (cmd.getName().equalsIgnoreCase("tphelp"))
-        {
-            config.send(player, config.getWhatever("tphelp"));
-        }
         //Not enough arguments
         return false;
     }
 
-    private long canTeleport(Player player, Location targetLocation, @Nullable Player target, boolean warmup)
+    private long getWarmup(Player player, Location targetLocation, @Nullable Player target, long warmupTime)
     {
-        long warmupTime = 0L;
-        if (warmup)
-            warmupTime = 140L; //TODO: config
         PreTPATeleportEvent event = new PreTPATeleportEvent(player, targetLocation, target, warmupTime);
         //Permission check
         if (target != null)
@@ -309,7 +306,7 @@ public class BetterTPA extends JavaPlugin implements Listener
     }
 
     /**
-     *
+     * @Deprecated
      * @param player
      * @param targetName
      * @param targetLocation
@@ -318,10 +315,18 @@ public class BetterTPA extends JavaPlugin implements Listener
      */
     public void teleportPlayer(Player player, @Nonnull String targetName, @Nonnull final Location targetLocation, boolean warmup, @Nullable Player target)
     {
+        if (warmup)
+            teleportPlayer(player, targetName, targetLocation, 140L, target); //TODO: use config value
+        else
+            teleportPlayer(player, targetName, targetLocation, 0L, target);
+    }
+
+    public void teleportPlayer(Player player, @Nonnull String targetName, @Nonnull final Location targetLocation, long warmup, @Nullable Player target)
+    {
         //Silently cancel any existing teleports
         cancelPendingTeleport(player, false);
 
-        long warmupTime = canTeleport(player, targetLocation, target, warmup);
+        long warmupTime = getWarmup(player, targetLocation, target, warmup);
         if (warmupTime < 0L)
             return;
 
